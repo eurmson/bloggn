@@ -20,8 +20,8 @@
             <h1 class="text-4xl md:text-5xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent select-none">
                 All Blog Posts
             </h1>
-            <a href="#bottom" class="px-3 py-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 font-mono text-xs transition-colors duration-200 flex items-center gap-1.5">
-                <span>jump_to_bottom</span> &darr;
+            <a href="#bottom" class="text-slate-400 hover:text-indigo-400 font-mono text-xs transition-colors duration-200 flex items-center gap-1">
+                <span>jump_to_bottom</span> <span class="text-lg">&darr;</span>
             </a>
         </div>
 
