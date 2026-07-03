@@ -1,0 +1,30 @@
+<!-- Google Fonts: Anta & Unica One -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anta&family=Unica+One&display=swap" rel="stylesheet">
+
+<!-- Tailwind Play CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Tailwind CDN Configuration -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Anta"', 'sans-serif'],        // 'Anta' is the default for regular text (font-sans)
+          heading: ['"Unica One"', 'cursive'],  // Custom class helper (font-heading) if needed
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Apply Unica One to all headings by default -->
+<style type="text/tailwindcss">
+  @layer base {
+    h1, h2, h3, h4, h5, h6 {
+      font-family: "Unica One", cursive;
+    }
+  }
+</style>

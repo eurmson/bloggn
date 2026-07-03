@@ -1,0 +1,15 @@
+[package]
+name = "bloggn"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rocket = { version = "0.5.1" }
+rshtml = "0.6.1"
+diesel = { version = "2.3.10", features = ["sqlite", "r2d2", "chrono"] }
+rocket_dyn_templates = { version = "0.2.0", features = ["tera"] }
+diesel_migrations = { version = "2.3.0" }
+r2d2 = "0.8.10"
+dotenvy = "0.15.7"
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }

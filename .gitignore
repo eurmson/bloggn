@@ -1,0 +1,7 @@
+/target
+diesel.db
+.env
+*.db-journal
+node_modules/
+/node_modules
+/static/images/

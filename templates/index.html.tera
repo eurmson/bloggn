@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% include "tailwind" %}
+</head>
+<body class="bg-[#020617] text-gray-100 min-h-screen overflow-hidden">
+    <!-- Sliding SPA Wrapper -->
+    <div id="slide-wrapper" class="w-screen h-[200vh] transition-transform duration-700 ease-in-out transform {% if start_at_blog %}-translate-y-1/2{% else %}translate-y-0{% endif %}">
+        
+        <!-- Viewport 1: Landing Page -->
+        <div class="h-screen w-screen relative flex items-center justify-center overflow-hidden">
+            <!-- Canvas Background (inside Viewport 1, so it slides up) -->
+            <canvas id="bg-canvas" class="absolute top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
+
+            <!-- Main Container (Centered Bio) -->
+            <div class="relative max-w-md w-full mx-4 p-8 md:p-10 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-indigo-500/30">
+                <!-- Subtle background glow -->
+                <div class="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent tracking-tight text-center">
+                        {{ name }}
+                    </h1>
+                    <p class="text-sm font-semibold tracking-wider text-indigo-400 uppercase text-center mb-6">
+                        Developer & Creator
+                    </p>
+                    
+                    <!-- Bio in the Middle -->
+                    <div class="space-y-4 text-zinc-300 font-light text-center leading-relaxed max-w-sm mx-auto">
+                        <p>
+                            I explore the intersection of technology and everyday life. By day, I build software; by night, I experiment in the kitchen and write about my journey.
+                        </p>
+                        <p class="text-xs text-zinc-500 font-medium animate-pulse mt-6">
+                            Move your mouse to the bottom corners to explore.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Left Button: Culinary Studio (Light Mode Side - slides up) -->
+            <div class="absolute bottom-8 left-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-1">
+                <div class="p-4 rounded-xl bg-white/70 border border-zinc-200/80 shadow-lg backdrop-blur-md flex flex-col text-left select-none max-w-[240px]">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-sm font-bold text-zinc-800">Culinary Studio</span>
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                            Soon
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-zinc-600 font-light leading-relaxed">
+                        Recipes, kitchen logs, and culinary science.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bottom Right Button: Digitally Distracted (Dark Mode Side - slides up) -->
+            <a href="/blog" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer text-left block">
+                <div class="p-4 rounded-xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg backdrop-blur-md hover:border-indigo-500/40 hover:bg-zinc-900/80 flex flex-col text-left max-w-[240px]">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-sm font-bold text-indigo-200 group-hover:text-indigo-300 transition-colors">Digitally Distracted</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-400 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <p class="text-[11px] text-zinc-400 font-light leading-relaxed group-hover:text-zinc-300 transition-colors">
+                        Tech notes, engineering, and digital mindfulness.
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Viewport 2: Blog List Page (Solid background, exactly as before) -->
+        <div class="h-screen w-screen bg-[#020617] text-slate-100 overflow-y-auto">
+            <div class="max-w-4xl mx-auto px-6 py-12 md:py-16">
+                <!-- Breadcrumb / Header navigation -->
+                <div class="mb-12 flex items-center justify-between">
+                    <button id="blog-back-btn" class="group flex items-center gap-1.5 text-sm font-mono text-slate-400 hover:text-indigo-400 transition-colors">
+                        <span class="transform group-hover:-translate-x-0.5 transition-transform">&larr;</span> cd ..
+                    </button>
+                    <span class="text-xs font-mono text-slate-500">~/blog</span>
+                </div>
+
+                <h1 class="text-4xl md:text-5xl font-bold font-heading mb-12 tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent">
+                    All Blog Posts
+                </h1>
+
+                <div id="posts-container" class="pb-16">
+                    {% if posts %}
+                        {% include "posts_loop" %}
+                    {% else %}
+                        <div id="posts-loading" class="text-left font-mono text-xs text-slate-500 py-12 space-y-2">
+                            <span class="animate-pulse block">$ fetching digital_distractions.db...</span>
+                            <span class="animate-pulse block text-[10px] text-slate-600">[||||||||||||||||                    ] 45%</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Canvas Animation Script -->
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        let mouse = { x: width * 0.5, y: 0 };
+        let currentMouse = { x: width * 0.5, y: 0 };
+
+        // Grid parameters
+        const grid = [];
+        const spacing = 40; // spacing between dots in pixels
+
+        function createGrid() {
+            grid.length = 0;
+            const hSpacing = spacing;
+            const vSpacing = spacing * Math.sqrt(3) / 2; // ~0.866 * spacing (for equilateral triangles)
+
+            const cols = Math.ceil(width / hSpacing) + 2;
+            const rows = Math.ceil(height / vSpacing) + 2;
+
+            for (let r = 0; r < rows; r++) {
+                const rowData = [];
+                const isEven = (r % 2 === 0);
+                const xOffset = isEven ? 0 : hSpacing / 2;
+
+                // Start from -1 to ensure offset rows cover the left edge of the screen
+                for (let c = -1; c < cols; c++) {
+                    const baseX = c * hSpacing + xOffset;
+                    const baseY = r * vSpacing;
+                    rowData.push({
+                        baseX,
+                        baseY,
+                        x: baseX,
+                        y: baseY,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+                grid.push(rowData);
+            }
+        }
+
+        let time = 0;
+
+        function animate() {
+            time += 16; // increment time
+
+            // Smooth mouse interpolation
+            mouse.x += (currentMouse.x - mouse.x) * 0.1;
+            mouse.y += (currentMouse.y - mouse.y) * 0.1;
+
+            // R (span of the gradient)
+            const R = Math.max(width, height) * 0.5;
+
+            // Line parameters: anchor point (lineStart) is shifted below the screen by R
+            const lineStart = { x: width * 0.5, y: height + R };
+            // Calculate raw angle to mouse
+            const dxRaw = mouse.x - lineStart.x;
+            const dyRaw = mouse.y - lineStart.y;
+            const rawAngle = Math.atan2(dyRaw, dxRaw);
+
+            // Amplify rotation (K = 1.55) relative to the vertical line
+            const verticalAngle = -Math.PI / 2;
+            const deflection = rawAngle - verticalAngle;
+            let angle = verticalAngle + deflection * 1.55;
+
+            // Clamp rotation close to horizontal at the extremes (5 degrees limit)
+            const minAngle = -175 * Math.PI / 180;
+            const maxAngle = -5 * Math.PI / 180;
+            angle = Math.max(minAngle, Math.min(maxAngle, angle));
+
+            const dist = Math.hypot(dxRaw, dyRaw);
+            const lineLength = Math.max(dist, 100);
+
+            const lineEnd = {
+                x: lineStart.x + Math.cos(angle) * lineLength,
+                y: lineStart.y + Math.sin(angle) * lineLength
+            };
+
+            const dx = lineEnd.x - lineStart.x;
+            const dy = lineEnd.y - lineStart.y;
+            const len = Math.hypot(dx, dy);
+
+            let ux = 0;
+            let uy = -1;
+            if (len > 5) {
+                ux = dx / len;
+                uy = dy / len;
+            }
+            // Perpendicular normal vector pointing to the right side (dark side)
+            const nx = -uy;
+            const ny = ux;
+
+            const M = {
+                x: (lineStart.x + lineEnd.x) / 2,
+                y: (lineStart.y + lineEnd.y) / 2
+            };
+
+            // Dark side is opposite of the normal direction, Light side is along the normal
+            const gradStartX = M.x + R * nx;
+            const gradStartY = M.y + R * ny;
+            const gradEndX = M.x - R * nx;
+            const gradEndY = M.y - R * ny;
+
+            // 1. Draw background gradient (white/light on left, black/dark on right)
+            const grad = ctx.createLinearGradient(gradStartX, gradStartY, gradEndX, gradEndY);
+            grad.addColorStop(0, '#f8fafc'); // Light side (Slate-50)
+            grad.addColorStop(0.35, '#f8fafc'); // Keep solid light up to 35%
+            grad.addColorStop(0.65, '#020617'); // Fast transition to dark
+            grad.addColorStop(1, '#020617'); // Dark side (Slate-950)
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            // 2. Update node positions with organic floating wave
+            for (let r = 0; r < grid.length; r++) {
+                for (let c = 0; c < grid[r].length; c++) {
+                    const node = grid[r][c];
+                    const amp = 3.5;
+                    node.x = node.baseX + Math.sin(time * 0.0015 + node.phase) * amp;
+                    node.y = node.baseY + Math.cos(time * 0.0012 + node.phase) * amp;
+                }
+            }
+
+            // 3. Render connection lines (using a fast bucketing approach to optimize performance)
+            const lineBuckets = Array.from({ length: 6 }, () => []);
+
+            for (let r = 0; r < grid.length; r++) {
+                const isEven = (r % 2 === 0);
+                for (let c = 0; c < grid[r].length; c++) {
+                    const p1 = grid[r][c];
+
+                    // 1. Connect to right neighbor
+                    if (c < grid[r].length - 1) {
+                        collectLatticeLine(p1, grid[r][c + 1], M, nx, ny, R, lineBuckets);
+                    }
+
+                    // 2. Connect to next row (equilateral triangle diagonals)
+                    if (r < grid.length - 1) {
+                        if (isEven) {
+                            // Down-left: index - 1 in next row
+                            if (c > 0 && c - 1 < grid[r + 1].length) {
+                                collectLatticeLine(p1, grid[r + 1][c - 1], M, nx, ny, R, lineBuckets);
+                            }
+                            // Down-right: index in next row
+                            if (c < grid[r + 1].length) {
+                                collectLatticeLine(p1, grid[r + 1][c], M, nx, ny, R, lineBuckets);
+                            }
+                        } else {
+                            // Down-left: index in next row
+                            if (c < grid[r + 1].length) {
+                                collectLatticeLine(p1, grid[r + 1][c], M, nx, ny, R, lineBuckets);
+                            }
+                            // Down-right: index + 1 in next row
+                            if (c + 1 < grid[r + 1].length) {
+                                collectLatticeLine(p1, grid[r + 1][c + 1], M, nx, ny, R, lineBuckets);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Draw line buckets
+            lineBuckets.forEach((bucket, index) => {
+                if (bucket.length === 0) return;
+                const opacity = 0.01 + 0.12 * (index / 5);
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                for (let i = 0; i < bucket.length; i += 5) {
+                    ctx.moveTo(bucket[i], bucket[i+1]);
+                    ctx.lineTo(bucket[i+2], bucket[i+3]);
+                }
+                // Determine line color base on bucket index (blend slate 800 to 200)
+                const t = index / 5;
+                const rVal = Math.round(15 + (226 - 15) * t);
+                const gVal = Math.round(23 + (232 - 23) * t);
+                const bVal = Math.round(42 + (240 - 42) * t);
+                ctx.strokeStyle = `rgba(${rVal}, ${gVal}, ${bVal}, ${opacity})`;
+                ctx.stroke();
+            });
+
+            // 4. Render particles
+            for (let r = 0; r < grid.length; r++) {
+                for (let c = 0; c < grid[r].length; c++) {
+                    const p = grid[r][c];
+                    const wx = p.x - M.x;
+                    const wy = p.y - M.y;
+                    const proj = wx * nx + wy * ny;
+                    const dist = Math.abs(proj);
+
+                    // Interpolation factor (0 = light side, 1 = dark side) - swapped side calculation
+                    const t = Math.max(0, Math.min(1, (R - proj) / (2 * R)));
+
+                    // Size calculation: smaller near the line, larger towards the edges
+                    const rRatio = Math.min(dist / R, 1.0);
+                    const minRadius = 0.6;
+                    const maxRadius = 10;
+                    const radius = minRadius + (maxRadius - minRadius) * rRatio;
+
+                    // Opacity: fade near the line
+                    const opacity = 0.15 + 0.6 * rRatio;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = getParticleColor(t, opacity);
+                    ctx.fill();
+                }
+            }
+
+            // 5. Dividing line drawing removed per request
+
+            requestAnimationFrame(animate);
+        }
+
+        function collectLatticeLine(p1, p2, M, nx, ny, R, buckets) {
+            const avgX = (p1.x + p2.x) / 2;
+            const avgY = (p1.y + p2.y) / 2;
+
+            const wx = avgX - M.x;
+            const wy = avgY - M.y;
+            const proj = wx * nx + wy * ny;
+            const dist = Math.abs(proj);
+
+            const rRatio = Math.min(dist / R, 1.0);
+            const bucketIndex = Math.min(5, Math.floor(rRatio * 6));
+            
+            // Push coords and avg t
+            buckets[bucketIndex].push(p1.x, p1.y, p2.x, p2.y, rRatio);
+        }
+
+        function getParticleColor(t, opacity) {
+            // Light side (t=0): Dark Slate (15, 23, 42)
+            // Dark side (t=1): Light Slate (226, 232, 240)
+            const r = Math.round(15 + (226 - 15) * t);
+            const g = Math.round(23 + (232 - 23) * t);
+            const b = Math.round(42 + (240 - 42) * t);
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            createGrid();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            currentMouse.x = e.clientX;
+            currentMouse.y = e.clientY;
+        });
+
+        // SPA sliding logic
+        const techBlogBtn = document.getElementById('tech-blog-btn');
+        const blogBackBtn = document.getElementById('blog-back-btn');
+        const slideWrapper = document.getElementById('slide-wrapper');
+
+        const postsContainer = document.getElementById('posts-container');
+        let postsLoaded = {% if posts %}true{% else %}false{% endif %};
+
+        function openBlog(pushState = true) {
+            slideWrapper.classList.remove('translate-y-0');
+            slideWrapper.classList.add('-translate-y-1/2');
+            if (pushState) {
+                history.pushState({ view: 'blog' }, '', '/blog');
+            }
+
+            // Lazy load blog posts if not already loaded
+            if (!postsLoaded) {
+                fetch('/blog/partial')
+                    .then(response => response.text())
+                    .then(html => {
+                        postsContainer.innerHTML = html;
+                        postsLoaded = true;
+                    })
+                    .catch(err => {
+                        console.error('Error loading posts:', err);
+                        postsContainer.innerHTML = `
+                            <div class="text-red-500 font-mono text-xs py-12">
+                                $ error: failed to establish connection to database.
+                            </div>`;
+                    });
+            }
+        }
+
+        function closeBlog(pushState = true) {
+            slideWrapper.classList.remove('-translate-y-1/2');
+            slideWrapper.classList.add('translate-y-0');
+            if (pushState) {
+                history.pushState({ view: 'index' }, '', '/');
+            }
+        }
+
+        techBlogBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openBlog();
+        });
+
+        blogBackBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeBlog();
+        });
+
+        // Browser back/forward navigation support
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.view === 'blog') {
+                openBlog(false);
+            } else {
+                closeBlog(false);
+            }
+        });
+
+        // Initialize state based on server-rendered route context
+        const isInitialBlog = {% if start_at_blog %}true{% else %}false{% endif %};
+        if (isInitialBlog) {
+            history.replaceState({ view: 'blog' }, '', '/blog');
+        } else {
+            history.replaceState({ view: 'index' }, '', '/');
+        }
+
+        // Initialize
+        createGrid();
+        animate();
+    </script>
+</body>
+</html>

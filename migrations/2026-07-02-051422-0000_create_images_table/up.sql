@@ -1,0 +1,7 @@
+CREATE TABLE images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    post_id INTEGER NOT NULL,
+    path VARCHAR NOT NULL,
+    description TEXT,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);

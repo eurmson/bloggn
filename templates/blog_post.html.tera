@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Blog Post</title>
+    {% include "tailwind" %}
+</head>
+<body class="bg-[#020617] text-slate-100 min-h-screen">
+    <div class="max-w-4xl mx-auto px-6 py-12 md:py-16">
+        <!-- Breadcrumb / Header navigation -->
+        <div class="mb-12 flex items-center justify-between">
+            <a href="/blog" class="group flex items-center gap-1.5 text-sm font-mono text-slate-400 hover:text-indigo-400 transition-colors">
+                <span class="transform group-hover:-translate-x-0.5 transition-transform">&larr;</span> cd ..
+            </a>
+            <span class="text-xs font-mono text-slate-500">~/blog/{{ post.id }}</span>
+        </div>
+
+        <article class="text-left">
+            <!-- Title Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1.5 border-b border-slate-800/80 text-xs font-mono text-slate-500 mb-6">
+                <div>
+                    <span class="select-none mr-1">$</span>cat {{ post.title | lower | replace(from=": ", to="_") | replace(from=" ", to="_") | replace(from="?", to="") | replace(from="!", to="") | replace(from="'", to="") | replace(from='"', to="") }}.md
+                </div>
+                <div>
+                    — {{ post.published_at | date(format="%Y-%m-%d") }}
+                </div>
+            </div>
+
+            <!-- Actual Title -->
+            <h1 class="text-2xl md:text-4xl font-bold font-heading text-indigo-200 mb-6">
+                {{ post.title }}
+            </h1>
+
+            <!-- Content Body -->
+            <div class="text-slate-300 font-light leading-relaxed text-base md:text-lg space-y-6 max-w-3xl">
+                <p>{{ content }}</p>
+            </div>
+
+            {% if images %}
+                <div class="my-10 space-y-6 max-w-3xl">
+                    {% for image in images %}
+                        <div class="overflow-hidden rounded-xl border border-slate-800/60 bg-slate-900/20 p-2">
+                            <img src="{{ image.path }}" alt="{{ image.description | default(value='Blog Image') }}" class="rounded-lg w-full object-cover" loading="lazy">
+                            {% if image.description %}
+                                <p class="text-xs font-mono text-slate-500 text-center mt-2.5">{{ image.description }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </article>
+    </div>
+</body>
+</html>
