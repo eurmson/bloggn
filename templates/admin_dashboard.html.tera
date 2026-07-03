@@ -53,7 +53,7 @@
 
                                 <!-- Action Buttons -->
                                 <div class="flex items-center gap-2">
-                                    <a href="/admin/posts/edit/{{ post.id }}" id="edit-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-800 text-slate-300 hover:text-indigo-200 font-mono text-xs transition-colors duration-200">
+                                    <a href="/blog/{{ post.id }}/edit" id="edit-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-800 text-slate-300 hover:text-indigo-200 font-mono text-xs transition-colors duration-200">
                                         edit_post
                                     </a>
                                     

@@ -343,7 +343,7 @@ pub async fn create_post_handler(
     Ok(Redirect::to(uri!(admin_dashboard)))
 }
 
-#[get("/admin/posts/edit/<id>")]
+#[get("/blog/<id>/edit")]
 pub fn edit_post(mut conn: DbConn, _user: AdminUser, id: i32) -> Result<Template, Redirect> {
     match actions::get_post_with_images(&mut conn, id) {
         Some((post, images)) => {
@@ -356,7 +356,7 @@ pub fn edit_post(mut conn: DbConn, _user: AdminUser, id: i32) -> Result<Template
     }
 }
 
-#[post("/admin/posts/edit/<id>", data = "<form>")]
+#[post("/blog/<id>/edit", data = "<form>")]
 pub fn update_post_handler(
     mut conn: DbConn,
     _user: AdminUser,
@@ -394,7 +394,7 @@ pub struct ImageUploadForm<'r> {
     file: TempFile<'r>,
 }
 
-#[post("/admin/posts/edit/<id>/upload_image", data = "<form>")]
+#[post("/blog/<id>/edit/upload_image", data = "<form>")]
 pub async fn upload_image_handler(
     mut conn: DbConn,
     _user: AdminUser,
@@ -441,7 +441,7 @@ pub async fn upload_image_handler(
     Ok(Redirect::to(uri!(edit_post(id))))
 }
 
-#[post("/admin/posts/delete_image/<post_id>/<image_id>")]
+#[post("/blog/<post_id>/edit/delete_image/<image_id>")]
 pub fn delete_image_handler(
     mut conn: DbConn,
     _user: AdminUser,
