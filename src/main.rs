@@ -63,9 +63,12 @@ fn blog_post(mut conn: DbConn, id: i32) -> Option<Template> {
 
 #[launch]
 fn rocket() -> _ {
+    dotenvy::dotenv().ok();
+    let image_dir = std::env::var("IMAGE_DIR").unwrap_or_else(|_| "static".to_string());
+
     rocket::build()
         .mount("/", routes![index, blog, blog_partial, blog_post])
-        .mount("/static", FileServer::from("static"))
+        .mount("/static", FileServer::from(image_dir))
         .attach(Template::fairing())
         .manage(db::init_pool()) // Add this line
 }
