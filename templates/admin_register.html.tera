@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Passkey - Admin</title>
+    {% include "tailwind" %}
+</head>
+<body class="bg-[#020617] text-gray-100 min-h-screen flex items-center justify-center font-sans">
+    <div class="max-w-md w-full mx-4 p-6 md:p-8 bg-slate-950/80 border border-slate-800 shadow-xl backdrop-blur-sm">
+        <h1 class="text-2xl font-bold font-heading text-indigo-200 mb-2 select-none">$ register_passkey</h1>
+        <div class="border-b border-slate-800/80 mb-6"></div>
+
+        <div id="register-form" class="space-y-4">
+            <div>
+                <label for="username" class="block text-xs font-mono text-slate-500 mb-1.5">$ whoami</label>
+                <input type="text" id="username" value="admin" class="w-full bg-slate-900 border border-slate-800 p-2.5 text-sm font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+            
+            <button id="register-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-sm font-semibold transition-colors duration-200 cursor-pointer">
+                Generate Passkey
+            </button>
+        </div>
+
+        <div id="status-box" class="hidden mt-6 p-4 border border-slate-800 bg-slate-900/40 text-xs font-mono space-y-3">
+            <div id="status-text" class="text-slate-300"></div>
+            <div id="cli-instructions" class="hidden space-y-2">
+                <div class="text-indigo-400 font-semibold">Verification Instructions:</div>
+                <p class="text-slate-400">Run this command in your local terminal to authorize the passkey:</p>
+                <div class="bg-black/40 p-2 border border-slate-800 text-[11px] text-zinc-300 break-all select-all select-none">
+                    cargo run -- --authorize-id <span id="cli-cred-id" class="text-indigo-300">CREDENTIAL_ID</span>
+                </div>
+                <a href="/admin/login" class="block text-center text-indigo-400 hover:underline pt-2">Proceed to Login &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base64URL encoding/decoding helper functions
+        function bufferToBase64url(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let string = '';
+            bytes.forEach(b => string += String.fromCharCode(b));
+            const base64 = btoa(string);
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        function base64urlToBuffer(base64url) {
+            let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            const string = atob(base64);
+            const buffer = new Uint8Array(string.length);
+            for (let i = 0; i < string.length; i++) {
+                buffer[i] = string.charCodeAt(i);
+            }
+            return buffer.buffer;
+        }
+
+        const registerBtn = document.getElementById('register-btn');
+        const usernameInput = document.getElementById('username');
+        const statusBox = document.getElementById('status-box');
+        const statusText = document.getElementById('status-text');
+        const cliInstructions = document.getElementById('cli-instructions');
+        const cliCredId = document.getElementById('cli-cred-id');
+
+        registerBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.innerText = 'Creating challenge...';
+            statusBox.classList.remove('hidden');
+            statusText.innerText = '$ requesting challenge from server...';
+            cliInstructions.classList.add('hidden');
+
+            try {
+                // 1. Get challenge from server
+                const startRes = await fetch('/admin/register/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                if (!startRes.ok) {
+                    const errText = await startRes.text();
+                    throw new Error(errText || 'Failed to start registration');
+                }
+
+                const options = await startRes.json();
+                statusText.innerText = '$ challenge received. Creating local credential via authenticator...';
+
+                // 2. Adjust challenge parameters for navigator.credentials.create
+                options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
+                options.publicKey.user.id = base64urlToBuffer(options.publicKey.user.id);
+                if (options.publicKey.excludeCredentials) {
+                    options.publicKey.excludeCredentials.forEach(cred => {
+                        cred.id = base64urlToBuffer(cred.id);
+                    });
+                }
+
+                // 3. Trigger browser prompt
+                const credential = await navigator.credentials.create({
+                    publicKey: options.publicKey
+                });
+
+                statusText.innerText = '$ credential created. Verifying signature on server...';
+
+                // 4. Serialize credential back to JSON
+                const clientPayload = {
+                    id: credential.id,
+                    rawId: bufferToBase64url(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+                        attestationObject: bufferToBase64url(credential.response.attestationObject),
+                        transports: credential.response.getTransports ? credential.response.getTransports() : []
+                    }
+                };
+
+                // 5. Submit validation payload
+                const finishRes = await fetch('/admin/register/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clientPayload)
+                });
+
+                if (!finishRes.ok) {
+                    const errText = await finishRes.text();
+                    throw new Error(errText || 'Server verification failed');
+                }
+
+                const credId = await finishRes.text();
+                statusText.innerText = '$ passkey registration successful. Status: PENDING CLI AUTHORIZATION.';
+                cliCredId.innerText = credId;
+                cliInstructions.classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = `$ error: ${err.message}`;
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerText = 'Generate Passkey';
+            }
+        });
+    </script>
+</body>
+</html>

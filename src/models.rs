@@ -20,6 +20,16 @@ pub struct NewPost {
     pub content: String,
 }
 
+#[derive(Insertable)]
+#[diesel(table_name = images)]
+pub struct NewImage {
+    pub post_id: i32,
+    pub path: String,
+    pub description: Option<String>,
+    pub tag: Option<String>,
+    pub title: Option<String>,
+}
+
 #[derive(Queryable, Selectable, Serialize)]
 #[diesel(table_name = images)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
@@ -29,6 +39,7 @@ pub struct Image {
     pub path: String,
     pub description: Option<String>,
     pub tag: Option<String>,
+    pub title: Option<String>,
 }
 
 // NewPost and NewImage will be added later when we re-enable creation
@@ -40,4 +51,16 @@ pub struct PostWithImages {
     pub content: String,
     pub published_at: Timestamp,
     pub images: Vec<Image>,
+    pub total_images: usize,
 }
+
+#[derive(Queryable, Selectable, Insertable, Serialize, Deserialize, Clone)]
+#[diesel(table_name = passkeys)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+pub struct PasskeyModel {
+    pub id: String,
+    pub username: String,
+    pub passkey: String, // JSON string of webauthn_rs::prelude::Passkey
+    pub authorized: bool,
+}
+

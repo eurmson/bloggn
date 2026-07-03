@@ -7,6 +7,16 @@ diesel::table! {
         path -> Text,
         description -> Nullable<Text>,
         tag -> Nullable<Text>,
+        title -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    passkeys (id) {
+        id -> Text,
+        username -> Text,
+        passkey -> Text,
+        authorized -> Bool,
     }
 }
 
@@ -21,4 +31,4 @@ diesel::table! {
 
 diesel::joinable!(images -> posts (post_id));
 
-diesel::allow_tables_to_appear_in_same_query!(images, posts,);
+diesel::allow_tables_to_appear_in_same_query!(images, passkeys, posts,);

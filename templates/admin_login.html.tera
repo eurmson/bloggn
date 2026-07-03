@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin</title>
+    {% include "tailwind" %}
+</head>
+<body class="bg-[#020617] text-gray-100 min-h-screen flex items-center justify-center font-sans">
+    <div class="max-w-md w-full mx-4 p-6 md:p-8 bg-slate-950/80 border border-slate-800 shadow-xl backdrop-blur-sm">
+        <h1 class="text-2xl font-bold font-heading text-indigo-200 mb-2 select-none">$ login_admin</h1>
+        <div class="border-b border-slate-800/80 mb-6"></div>
+
+        <div id="login-form" class="space-y-4">
+            <div>
+                <label for="username" class="block text-xs font-mono text-slate-500 mb-1.5">$ whoami</label>
+                <input type="text" id="username" value="admin" class="w-full bg-slate-900 border border-slate-800 p-2.5 text-sm font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+            
+            <button id="login-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-sm font-semibold transition-colors duration-200 cursor-pointer">
+                Authenticate with Passkey
+            </button>
+        </div>
+
+        <div id="status-box" class="hidden mt-6 p-4 border border-slate-800 bg-slate-900/40 text-xs font-mono text-slate-300">
+            <div id="status-text"></div>
+        </div>
+
+        <div class="mt-6 text-center text-xs font-mono text-slate-500">
+            Need to register? <a href="/admin/register" class="text-indigo-400 hover:underline">register_passkey &rarr;</a>
+        </div>
+    </div>
+
+    <script>
+        // Base64URL encoding/decoding helper functions
+        function bufferToBase64url(buffer) {
+            if (!buffer) return null;
+            const bytes = new Uint8Array(buffer);
+            let string = '';
+            bytes.forEach(b => string += String.fromCharCode(b));
+            const base64 = btoa(string);
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        function base64urlToBuffer(base64url) {
+            let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            const string = atob(base64);
+            const buffer = new Uint8Array(string.length);
+            for (let i = 0; i < string.length; i++) {
+                buffer[i] = string.charCodeAt(i);
+            }
+            return buffer.buffer;
+        }
+
+        const loginBtn = document.getElementById('login-btn');
+        const usernameInput = document.getElementById('username');
+        const statusBox = document.getElementById('status-box');
+        const statusText = document.getElementById('status-text');
+
+        loginBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = 'Creating challenge...';
+            statusBox.classList.remove('hidden');
+            statusText.innerText = '$ requesting challenge from server...';
+
+            try {
+                // 1. Get authentication challenge from server
+                const startRes = await fetch('/admin/login/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                if (!startRes.ok) {
+                    const errText = await startRes.text();
+                    throw new Error(errText || 'Failed to start authentication');
+                }
+
+                const options = await startRes.json();
+                statusText.innerText = '$ challenge received. Requesting signature from authenticator...';
+
+                // 2. Adjust challenge parameters for navigator.credentials.get
+                options.publicKey.challenge = base64urlToBuffer(options.publicKey.challenge);
+                if (options.publicKey.allowCredentials) {
+                    options.publicKey.allowCredentials.forEach(cred => {
+                        cred.id = base64urlToBuffer(cred.id);
+                    });
+                }
+
+                // 3. Trigger browser prompt
+                const credential = await navigator.credentials.get({
+                    publicKey: options.publicKey
+                });
+
+                statusText.innerText = '$ credential signed. Logging in...';
+
+                // 4. Serialize signature payload back to JSON
+                const clientPayload = {
+                    id: credential.id,
+                    rawId: bufferToBase64url(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+                        authenticatorData: bufferToBase64url(credential.response.authenticatorData),
+                        signature: bufferToBase64url(credential.response.signature),
+                        userHandle: credential.response.userHandle ? bufferToBase64url(credential.response.userHandle) : null
+                    }
+                };
+
+                // 5. Submit validation payload
+                const finishRes = await fetch('/admin/login/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clientPayload)
+                });
+
+                if (!finishRes.ok) {
+                    const errText = await finishRes.text();
+                    throw new Error(errText || 'Authentication check failed');
+                }
+
+                statusText.innerText = '$ authentication successful. Redirecting...';
+                window.location.href = '/admin/dashboard';
+
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = `$ error: ${err.message}`;
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerText = 'Authenticate with Passkey';
+            }
+        });
+    </script>
+</body>
+</html>

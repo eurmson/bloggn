@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Post - Admin</title>
+    {% include "tailwind" %}
+</head>
+<body class="bg-[#020617] text-gray-100 min-h-screen font-sans">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Top Navigation Header -->
+        <header class="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
+            <div class="flex items-center gap-4">
+                <a href="/admin/dashboard" class="text-xs font-mono text-slate-500 hover:text-indigo-400">&larr; back_to_dashboard</a>
+                <h1 class="text-2xl font-bold font-heading text-indigo-200 select-none">$ edit_post: {{ post.id }}</h1>
+            </div>
+            
+            <a href="/blog/{{ post.id }}" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition-colors duration-200">
+                view_live_post &nearr;
+            </a>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Side: Edit Text Content (span 2) -->
+            <div class="lg:col-span-2 space-y-6">
+                <main class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 md:p-8 shadow-xl">
+                    <h2 class="text-md font-mono text-indigo-300 mb-6">$ modify_content</h2>
+                    
+                    <form action="/admin/posts/edit/{{ post.id }}" method="POST" class="space-y-6">
+                        <!-- Title Field -->
+                        <div>
+                            <label for="title" class="block text-xs font-mono text-slate-500 mb-1.5">$ post_title</label>
+                            <input type="text" id="title" name="title" value="{{ post.title }}" required class="w-full bg-slate-900 border border-slate-800 p-2.5 text-sm text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+
+                        <!-- Content Field -->
+                        <div>
+                            <label for="content" class="block text-xs font-mono text-slate-500 mb-1.5">$ post_content</label>
+                            <textarea id="content" name="content" rows="16" required class="w-full bg-slate-900 border border-slate-800 p-2.5 text-sm font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors resize-y">{{ post.content }}</textarea>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex items-center gap-3 pt-4 border-t border-slate-900">
+                            <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
+                                $ save_changes
+                            </button>
+                            <a href="/admin/dashboard" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-slate-350 font-mono text-xs transition-colors duration-200">
+                                cancel
+                            </a>
+                        </div>
+                    </form>
+                </main>
+            </div>
+
+            <!-- Right Side: Image/Media Manager (span 1) -->
+            <div class="space-y-6">
+                <!-- Image Upload Section -->
+                <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl">
+                    <h2 class="text-md font-mono text-indigo-300 mb-4">$ upload_image</h2>
+                    
+                    <form action="/admin/posts/edit/{{ post.id }}/upload_image" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <!-- File Input -->
+                        <div>
+                            <label for="file" class="block text-xs font-mono text-slate-500 mb-1.5">$ file_input</label>
+                            <input type="file" id="file" name="file" accept="image/*" required class="w-full text-xs font-mono text-slate-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-750 file:cursor-pointer border border-slate-800 bg-slate-900 p-2">
+                        </div>
+
+                        <!-- Display Title Input -->
+                        <div>
+                            <label for="img_title" class="block text-xs font-mono text-slate-500 mb-1.5">$ display_title (e.g. fun_clouds.png)</label>
+                            <input type="text" id="img_title" name="img_title" placeholder="Optional display name..." class="w-full bg-slate-900 border border-slate-800 p-2 text-xs font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+
+                        <!-- Tag Input -->
+                        <div>
+                            <label for="tag" class="block text-xs font-mono text-slate-500 mb-1.5">$ content_tag (e.g. [img1])</label>
+                            <input type="text" id="tag" name="tag" placeholder="e.g. [img1]" class="w-full bg-slate-900 border border-slate-800 p-2 text-xs font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                            <span class="text-[10px] text-slate-500 block mt-1">Place this tag inside the content text to embed the image there.</span>
+                        </div>
+
+                        <!-- Description Input -->
+                        <div>
+                            <label for="description" class="block text-xs font-mono text-slate-500 mb-1.5">$ caption / description</label>
+                            <input type="text" id="description" name="description" placeholder="Optional description..." class="w-full bg-slate-900 border border-slate-800 p-2 text-xs text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+
+                        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
+                            $ execute_upload
+                        </button>
+                    </form>
+                </section>
+
+                <!-- List of Current Images -->
+                <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl space-y-4">
+                    <h2 class="text-md font-mono text-indigo-300">$ associated_media</h2>
+                    
+                    {% if images %}
+                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                            {% for img in images %}
+                                <div class="border border-slate-800/80 bg-slate-900/30 p-3 space-y-2 flex flex-col">
+                                    <div class="aspect-video w-full overflow-hidden bg-black/20 border border-slate-850 flex items-center justify-center">
+                                        <img src="{{ img.path }}" alt="{{ img.description | default(value='Blog Image') }}" class="object-cover w-full h-full">
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex items-center justify-between font-mono">
+                                            <span class="text-slate-300 font-semibold truncate max-w-[150px]" title="Display Title">{{ img.title | default(value=(img.path | split(pat="/") | last)) }}</span>
+                                            <span class="text-indigo-300">{{ img.tag | default(value='[no tag]') }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between font-mono pt-1 text-[10px] border-t border-slate-900">
+                                            <span class="text-slate-500 truncate max-w-[180px] select-all">{{ img.path }}</span>
+                                            <form action="/admin/posts/delete_image/{{ post.id }}/{{ img.id }}" method="POST" onsubmit="return confirm('Delete this image?');">
+                                                <button type="submit" class="text-red-400 hover:text-red-300 font-semibold cursor-pointer">
+                                                    [delete]
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <p class="text-slate-400 italic mt-1.5">Caption: {{ img.description | default(value='None') }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-xs text-slate-500 font-mono text-center py-4">No images uploaded yet.</p>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
