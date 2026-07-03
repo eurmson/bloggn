@@ -33,17 +33,21 @@
             </h1>
 
             <!-- Content Body -->
-            <div class="text-slate-300 font-light leading-relaxed text-base md:text-lg space-y-6 max-w-3xl">
-                <p>{{ content }}</p>
+            <div class="mt-6 text-slate-300 font-light leading-relaxed max-w-3xl whitespace-pre-line">
+                {{ content | safe }}
             </div>
 
+            <!-- Bottom Images (Untagged) -->
             {% if images %}
-                <div class="my-10 space-y-6 max-w-3xl">
+                <div class="mt-8 space-y-6 max-w-3xl">
                     {% for image in images %}
-                        <div class="overflow-hidden rounded-xl border border-slate-800/60 bg-slate-900/20 p-2">
-                            <img src="{{ image.path }}" alt="{{ image.description | default(value='Blog Image') }}" class="rounded-lg w-full object-cover" loading="lazy">
+                        <div class="mt-6 mb-1 select-none text-left">
+                            <div class="flex items-center gap-1 text-xs font-mono text-slate-500 mb-1.5">
+                                <span>$</span>display {{ image.title | default(value=(image.path | split(pat="/") | last)) }}
+                            </div>
+                            <img src="{{ image.path }}" alt="{{ image.description | default(value='Blog Image') }}" class="block w-full object-cover border-0 p-0 rounded-none" loading="lazy">
                             {% if image.description %}
-                                <p class="text-xs font-mono text-slate-500 text-center mt-2.5">{{ image.description }}</p>
+                                <p class="text-xs font-mono text-slate-500 text-center mt-2">— {{ image.description }}</p>
                             {% endif %}
                         </div>
                     {% endfor %}

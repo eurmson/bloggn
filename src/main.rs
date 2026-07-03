@@ -50,14 +50,14 @@ fn blog_partial(mut conn: DbConn) -> Template {
 
 #[get("/blog/<id>")]
 fn blog_post(mut conn: DbConn, id: i32) -> Option<Template> {
-    actions::get_post_with_images(&mut conn, id).map(|(post, images)| {
+    actions::get_single_post_with_images(&mut conn, id).map(|post| {
         Template::render(
             "blog_post",
             context! {
                 title: &post.title,
                 content: &post.content,
                 post: &post,
-                images: &images
+                images: &post.images
             },
         )
     })
