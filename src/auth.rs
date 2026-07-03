@@ -467,6 +467,11 @@ fn delete_image_file(image_path: &str) {
     }
 }
 
+#[get("/admin")]
+pub fn admin_redirect() -> Redirect {
+    Redirect::to(uri!(admin_dashboard))
+}
+
 #[post("/admin/logout")]
 pub fn admin_logout(cookies: &CookieJar<'_>) -> Redirect {
     cookies.remove_private(Cookie::new("admin_logged_in", ""));

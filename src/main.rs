@@ -131,6 +131,7 @@ fn rocket() -> _ {
             auth::delete_post_handler,
             auth::upload_image_handler,
             auth::delete_image_handler,
+            auth::admin_redirect,
         ])
         .register("/", catchers![auth::unauthorized])
         .mount("/static", FileServer::from(image_dir))
