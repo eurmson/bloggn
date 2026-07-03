@@ -46,7 +46,7 @@ pub fn init_webauthn() -> Webauthn {
 
 #[get("/admin/login?<redirect>")]
 pub fn admin_login(cookies: &CookieJar<'_>, redirect: Option<String>) -> Result<Template, Redirect> {
-    let safe_redirect = redirect.filter(|r| r.starts_with('/') && !r.starts_with("//"));
+    let safe_redirect = redirect.filter(|r| is_valid_route(r));
     if cookies.get_private("admin_logged_in").is_some() {
         if let Some(r) = safe_redirect {
             return Err(Redirect::to(r));
@@ -489,9 +489,29 @@ pub fn admin_logout(cookies: &CookieJar<'_>) -> Redirect {
 pub fn unauthorized(req: &Request<'_>) -> Redirect {
     if req.method() == rocket::http::Method::Get {
         let redirect_uri = req.uri().to_string();
-        if !redirect_uri.starts_with("/admin/login") {
+        if is_valid_route(&redirect_uri) && !redirect_uri.starts_with("/admin/login") {
             return Redirect::to(format!("/admin/login?redirect={}", redirect_uri));
         }
     }
     Redirect::to(uri!(admin_login(None::<String>)))
+}
+
+fn is_valid_route(path: &str) -> bool {
+    let path_only = path.split('?').next().unwrap_or(path);
+    if !path_only.starts_with('/') || path_only.starts_with("//") {
+        return false;
+    }
+    
+    let segments: Vec<&str> = path_only.split('/').filter(|s| !s.is_empty()).collect();
+    match segments.as_slice() {
+        [] => true,
+        ["blog"] | ["admin"] => true,
+        ["blog", "partial"] => true,
+        ["admin", "dashboard"] => true,
+        ["admin", "login"] => true,
+        ["admin", "register"] => true,
+        ["blog", id] => id.chars().all(|c| c.is_ascii_digit()),
+        ["blog", id, "edit"] => id.chars().all(|c| c.is_ascii_digit()),
+        _ => false
+    }
 }
