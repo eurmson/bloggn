@@ -3,5 +3,6 @@ CREATE TABLE images (
     post_id INTEGER NOT NULL,
     path VARCHAR NOT NULL,
     description TEXT,
+    tag VARCHAR,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
