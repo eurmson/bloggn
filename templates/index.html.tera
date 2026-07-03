@@ -15,58 +15,66 @@
             <!-- Canvas Background (inside Viewport 1, so it slides up) -->
             <canvas id="bg-canvas" class="absolute top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
 
-            <!-- Main Container (Centered Bio) -->
-            <div class="relative max-w-md w-full mx-4 p-8 md:p-10 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-indigo-500/30">
-                <!-- Subtle background glow -->
-                <div class="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <!-- Main Container (Centered Bio - flat terminal style) -->
+            <div class="relative max-w-md w-full mx-4 p-6 md:p-8 rounded-none bg-slate-950/80 border border-slate-800 shadow-none backdrop-blur-sm transition-all duration-300 hover:border-indigo-500/30">
+                <div class="relative text-left">
+                    <!-- Command Prompt Header -->
+                    <div class="flex items-center gap-1.5 text-[11px] font-mono text-slate-500 mb-2 select-none">
+                        <span>$</span>cat bio.txt
+                    </div>
+                    <div class="border-b border-slate-800/80 mb-5"></div>
 
-                <div class="relative">
-                    <h1 class="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent tracking-tight text-center">
+                    <!-- Card Body -->
+                    <h1 class="text-3xl font-bold font-heading text-indigo-200 mb-0.5 tracking-tight">
                         {{ name }}
                     </h1>
-                    <p class="text-sm font-semibold tracking-wider text-indigo-400 uppercase text-center mb-6">
+                    <p class="text-[10px] font-mono tracking-wider text-indigo-400 uppercase mb-4">
                         Developer & Creator
                     </p>
                     
-                    <!-- Bio in the Middle -->
-                    <div class="space-y-4 text-zinc-300 font-light text-center leading-relaxed max-w-sm mx-auto">
+                    <div class="space-y-4 text-slate-300 font-light text-sm leading-relaxed">
                         <p>
                             I explore the intersection of technology and everyday life. By day, I build software; by night, I experiment in the kitchen and write about my journey.
                         </p>
-                        <p class="text-xs text-zinc-500 font-medium animate-pulse mt-6">
-                            Move your mouse to the bottom corners to explore.
+                        <p class="text-[10px] font-mono text-slate-500 select-none mt-6">
+                            $ hover corners --explore
                         </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Left Button: Culinary Studio (Light Mode Side - slides up) -->
-            <div class="absolute bottom-8 left-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-1">
-                <div class="p-4 rounded-xl bg-white/70 border border-zinc-200/80 shadow-lg backdrop-blur-md flex flex-col text-left select-none max-w-[240px]">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-sm font-bold text-zinc-800">Culinary Studio</span>
-                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-orange-100 text-orange-700 border border-orange-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                            Soon
-                        </span>
+            <!-- Bottom Left Button: Culinary Studio (Light Mode Side - flat terminal style) -->
+            <div class="absolute bottom-8 left-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5">
+                <div class="p-4 rounded-none bg-slate-100/90 border border-slate-200 shadow-none backdrop-blur-sm flex flex-col text-left select-none max-w-[240px]">
+                    <div class="flex items-center gap-1 text-[10px] font-mono text-slate-400 mb-1">
+                        <span>$</span>ls culinary_studio/
                     </div>
-                    <p class="text-[11px] text-zinc-600 font-light leading-relaxed">
+                    <div class="border-b border-slate-200/80 mb-2"></div>
+                    <span class="text-xs font-bold text-slate-800 mb-0.5">Culinary Studio</span>
+                    <p class="text-[10px] text-slate-600 font-light leading-relaxed">
                         Recipes, kitchen logs, and culinary science.
                     </p>
+                    <span class="inline-flex items-center gap-1 self-start px-1.5 py-0.5 mt-2.5 rounded-none text-[8px] font-mono bg-orange-100 text-orange-700 border border-orange-200">
+                        <span class="w-1 h-1 rounded-full bg-orange-500 animate-pulse"></span>
+                        [soon]
+                    </span>
                 </div>
             </div>
 
-            <!-- Bottom Right Button: Digitally Distracted (Dark Mode Side - slides up) -->
-            <a href="/blog" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer text-left block">
-                <div class="p-4 rounded-xl bg-zinc-950/80 border border-zinc-800/80 shadow-lg backdrop-blur-md hover:border-indigo-500/40 hover:bg-zinc-900/80 flex flex-col text-left max-w-[240px]">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-sm font-bold text-indigo-200 group-hover:text-indigo-300 transition-colors">Digitally Distracted</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-400 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+            <!-- Bottom Right Button: Digitally Distracted (Dark Mode Side - flat terminal style) -->
+            <a href="/blog" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer text-left block">
+                <div class="p-4 rounded-none bg-slate-950/90 border border-slate-800 shadow-none backdrop-blur-sm hover:border-indigo-500/40 hover:bg-slate-900/60 flex flex-col text-left max-w-[240px]">
+                    <div class="flex items-center justify-between gap-1 text-[10px] font-mono text-slate-500 mb-1">
+                        <div class="flex items-center gap-1">
+                            <span>$</span>cd digitally_distracted/
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-indigo-400 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </div>
-                    <p class="text-[11px] text-zinc-400 font-light leading-relaxed group-hover:text-zinc-300 transition-colors">
+                    <div class="border-b border-slate-800/80 mb-2"></div>
+                    <span class="text-xs font-bold text-indigo-200 group-hover:text-indigo-300 transition-colors mb-0.5">Digitally Distracted</span>
+                    <p class="text-[10px] text-slate-400 font-light leading-relaxed group-hover:text-slate-300 transition-colors">
                         Tech notes, engineering, and digital mindfulness.
                     </p>
                 </div>
