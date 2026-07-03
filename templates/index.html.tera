@@ -62,7 +62,7 @@
             </div>
 
             <!-- Bottom Right Button: Digitally Distracted (Dark Mode Side - flat terminal style) -->
-            <a href="/blog" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer text-left block">
+            <a href="/digitally-distracted" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer text-left block">
                 <div class="p-4 rounded-none bg-slate-950/90 border border-slate-800 shadow-none backdrop-blur-sm hover:border-indigo-500/40 hover:bg-slate-900/60 flex flex-col text-left max-w-[240px]">
                     <div class="flex items-center justify-between gap-1 text-xs font-mono text-slate-500 mb-1.5">
                         <div class="flex items-center gap-1">
@@ -89,7 +89,7 @@
                     <a href="/" id="blog-back-btn" class="group flex items-center gap-1.5 text-sm font-mono text-slate-400 hover:text-indigo-400 transition-colors">
                         <span class="transform group-hover:-translate-x-0.5 transition-transform">&larr;</span> cd ..
                     </a>
-                    <span class="text-xs font-mono text-slate-500">~/blog</span>
+                    <span class="text-xs font-mono text-slate-500">~/digitally-distracted</span>
                 </div>
 
                 <div class="mb-12">
@@ -396,12 +396,12 @@
             slideWrapper.classList.remove('translate-y-0');
             slideWrapper.classList.add('-translate-y-1/2');
             if (pushState) {
-                history.pushState({ view: 'blog' }, '', '/blog');
+                history.pushState({ view: 'blog' }, '', '/digitally-distracted');
             }
 
             // Lazy load blog posts if not already loaded
             if (!postsLoaded) {
-                fetch('/blog/partial')
+                fetch('/digitally-distracted/partial')
                     .then(response => response.text())
                     .then(html => {
                         postsContainer.innerHTML = html;
@@ -447,7 +447,7 @@
         // Initialize state based on server-rendered route context
         const isInitialBlog = {% if start_at_blog %}true{% else %}false{% endif %};
         if (isInitialBlog) {
-            history.replaceState({ view: 'blog' }, '', '/blog');
+            history.replaceState({ view: 'blog' }, '', '/digitally-distracted');
         } else {
             history.replaceState({ view: 'index' }, '', '/');
         }

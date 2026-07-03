@@ -52,13 +52,16 @@ fn main() {
         }
     }
 
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let dest_path = Path::new(&out_dir).join("output.css");
+
     // Execute the Tailwind compiler
     let status = Command::new(&tailwind_bin)
         .args([
             "-i",
             "css/input.css",
             "-o",
-            "static/output.css",
+            dest_path.to_str().unwrap(),
             "--minify",
         ])
         .status();

@@ -10,10 +10,10 @@
     <div class="max-w-4xl mx-auto px-6 py-12 md:py-16">
         <!-- Breadcrumb / Header navigation -->
         <div class="mb-12 flex items-center justify-between">
-            <a href="/blog" class="group flex items-center gap-1.5 text-sm font-mono text-slate-400 hover:text-indigo-400 transition-colors">
+            <a href="/digitally-distracted" class="group flex items-center gap-1.5 text-sm font-mono text-slate-400 hover:text-indigo-400 transition-colors">
                 <span class="transform group-hover:-translate-x-0.5 transition-transform">&larr;</span> cd ..
             </a>
-            <span class="text-xs font-mono text-slate-500">~/blog/{{ post.id }}</span>
+            <span class="text-xs font-mono text-slate-500">~/digitally-distracted/{{ post.id }}</span>
         </div>
 
         <article class="text-left">

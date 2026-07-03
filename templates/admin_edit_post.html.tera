@@ -15,7 +15,7 @@
                 <h1 class="text-2xl font-bold font-heading text-indigo-200 select-none">$ edit_post: {{ post.id }}</h1>
             </div>
             
-            <a href="/blog/{{ post.id }}" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition-colors duration-200">
+            <a href="/digitally-distracted/{{ post.id }}" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition-colors duration-200">
                 view_live_post &nearr;
             </a>
         </header>
@@ -26,7 +26,7 @@
                 <main class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 md:p-8 shadow-xl">
                     <h2 class="text-md font-mono text-indigo-300 mb-6">$ modify_content</h2>
                     
-                    <form action="/blog/{{ post.id }}/edit" method="POST" class="space-y-6">
+                    <form action="/digitally-distracted/{{ post.id }}/edit" method="POST" class="space-y-6">
                         <!-- Title Field -->
                         <div>
                             <label for="title" class="block text-xs font-mono text-slate-500 mb-1.5">$ post_title</label>
@@ -58,7 +58,7 @@
                 <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl">
                     <h2 class="text-md font-mono text-indigo-300 mb-4">$ upload_image</h2>
                     
-                    <form action="/blog/{{ post.id }}/edit/upload_image" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <form action="/digitally-distracted/{{ post.id }}/edit/upload_image" method="POST" enctype="multipart/form-data" class="space-y-4">
                         <!-- File Input -->
                         <div>
                             <label for="file" class="block text-xs font-mono text-slate-500 mb-1.5">$ file_input</label>
@@ -108,7 +108,7 @@
                                         </div>
                                         <div class="flex items-center justify-between font-mono pt-1 text-[10px] border-t border-slate-900">
                                             <span class="text-slate-500 truncate max-w-[180px] select-all">{{ img.path }}</span>
-                                            <form action="/blog/{{ post.id }}/edit/delete_image/{{ img.id }}" method="POST" onsubmit="return confirm('Delete this image?');">
+                                            <form action="/digitally-distracted/{{ post.id }}/edit/delete_image/{{ img.id }}" method="POST" onsubmit="return confirm('Delete this image?');">
                                                 <button type="submit" class="text-red-400 hover:text-red-300 font-semibold cursor-pointer">
                                                     [delete]
                                                 </button>

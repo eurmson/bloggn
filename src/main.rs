@@ -23,7 +23,7 @@ fn index() -> Template {
     )
 }
 
-#[get("/blog")]
+#[get("/digitally-distracted")]
 fn blog(mut conn: DbConn) -> Template {
     let posts = actions::get_all_posts_with_images(&mut conn);
     Template::render(
@@ -37,7 +37,7 @@ fn blog(mut conn: DbConn) -> Template {
     )
 }
 
-#[get("/blog/partial")]
+#[get("/digitally-distracted/partial")]
 fn blog_partial(mut conn: DbConn) -> Template {
     let posts = actions::get_all_posts_with_images(&mut conn);
     Template::render(
@@ -48,7 +48,7 @@ fn blog_partial(mut conn: DbConn) -> Template {
     )
 }
 
-#[get("/blog/<id>")]
+#[get("/digitally-distracted/<id>")]
 fn blog_post(mut conn: DbConn, id: i32) -> Option<Template> {
     actions::get_single_post_with_images(&mut conn, id).map(|post| {
         Template::render(
@@ -61,6 +61,11 @@ fn blog_post(mut conn: DbConn, id: i32) -> Option<Template> {
             },
         )
     })
+}
+
+#[get("/static/output.css")]
+fn stylesheet() -> (rocket::http::ContentType, &'static str) {
+    (rocket::http::ContentType::CSS, include_str!(concat!(env!("OUT_DIR"), "/output.css")))
 }
 
 #[launch]
@@ -119,6 +124,7 @@ fn rocket() -> _ {
             blog, 
             blog_partial, 
             blog_post,
+            stylesheet,
             auth::admin_login,
             auth::login_start,
             auth::login_finish,

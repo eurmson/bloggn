@@ -357,7 +357,7 @@ pub async fn create_post_handler(
     Ok(Redirect::to(uri!(admin_dashboard)))
 }
 
-#[get("/blog/<id>/edit")]
+#[get("/digitally-distracted/<id>/edit")]
 pub fn edit_post(mut conn: DbConn, _user: AdminUser, id: i32) -> Result<Template, Redirect> {
     match actions::get_post_with_images(&mut conn, id) {
         Some((post, images)) => {
@@ -370,7 +370,7 @@ pub fn edit_post(mut conn: DbConn, _user: AdminUser, id: i32) -> Result<Template
     }
 }
 
-#[post("/blog/<id>/edit", data = "<form>")]
+#[post("/digitally-distracted/<id>/edit", data = "<form>")]
 pub fn update_post_handler(
     mut conn: DbConn,
     _user: AdminUser,
@@ -408,7 +408,7 @@ pub struct ImageUploadForm<'r> {
     file: TempFile<'r>,
 }
 
-#[post("/blog/<id>/edit/upload_image", data = "<form>")]
+#[post("/digitally-distracted/<id>/edit/upload_image", data = "<form>")]
 pub async fn upload_image_handler(
     mut conn: DbConn,
     _user: AdminUser,
@@ -461,7 +461,7 @@ pub async fn upload_image_handler(
     Ok(Redirect::to(uri!(edit_post(id))))
 }
 
-#[post("/blog/<post_id>/edit/delete_image/<image_id>")]
+#[post("/digitally-distracted/<post_id>/edit/delete_image/<image_id>")]
 pub fn delete_image_handler(
     mut conn: DbConn,
     _user: AdminUser,
@@ -518,13 +518,13 @@ fn is_valid_route(path: &str) -> bool {
     let segments: Vec<&str> = path_only.split('/').filter(|s| !s.is_empty()).collect();
     match segments.as_slice() {
         [] => true,
-        ["blog"] | ["admin"] => true,
-        ["blog", "partial"] => true,
+        ["digitally-distracted"] | ["admin"] => true,
+        ["digitally-distracted", "partial"] => true,
         ["admin", "dashboard"] => true,
         ["admin", "login"] => true,
         ["admin", "register"] => true,
-        ["blog", id] => id.chars().all(|c| c.is_ascii_digit()),
-        ["blog", id, "edit"] => id.chars().all(|c| c.is_ascii_digit()),
+        ["digitally-distracted", id] => id.chars().all(|c| c.is_ascii_digit()),
+        ["digitally-distracted", id, "edit"] => id.chars().all(|c| c.is_ascii_digit()),
         _ => false
     }
 }
