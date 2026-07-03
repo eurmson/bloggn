@@ -334,12 +334,19 @@ pub async fn create_post_handler(
             }
             
             let image_url = format!("/static/{}", filename);
+            let (w, h) = match imagesize::size(&target_path) {
+                Ok(dim) => (Some(dim.width as i32), Some(dim.height as i32)),
+                Err(_) => (None, None),
+            };
+            
             let new_image = crate::models::NewImage {
                 post_id: post.id,
                 path: image_url,
                 description: form.description.clone(),
                 tag: form.tag.clone(),
                 title: form.img_title.clone(),
+                width: w,
+                height: h,
             };
             
             actions::create_image(&mut conn, new_image)
@@ -433,6 +440,10 @@ pub async fn upload_image_handler(
     }
         
     let image_url = format!("/static/{}", filename);
+    let (w, h) = match imagesize::size(&target_path) {
+        Ok(dim) => (Some(dim.width as i32), Some(dim.height as i32)),
+        Err(_) => (None, None),
+    };
     
     let new_image = crate::models::NewImage {
         post_id: id,
@@ -440,6 +451,8 @@ pub async fn upload_image_handler(
         description: form.description.clone(),
         tag: form.tag.clone(),
         title: form.img_title.clone(),
+        width: w,
+        height: h,
     };
     
     actions::create_image(&mut conn, new_image)

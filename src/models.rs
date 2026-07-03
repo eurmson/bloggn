@@ -28,6 +28,8 @@ pub struct NewImage {
     pub description: Option<String>,
     pub tag: Option<String>,
     pub title: Option<String>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
 }
 
 #[derive(Queryable, Selectable, Serialize)]
@@ -40,6 +42,8 @@ pub struct Image {
     pub description: Option<String>,
     pub tag: Option<String>,
     pub title: Option<String>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
 }
 
 // NewPost and NewImage will be added later when we re-enable creation

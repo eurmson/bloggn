@@ -39,13 +39,6 @@
                     top: document.documentElement.scrollHeight,
                     behavior: 'smooth'
                 });
-                // Adjust scroll position after lazy-loaded images load/expand
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: document.documentElement.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }, 300);
             });
         }
     </script>

@@ -45,7 +45,7 @@
                             <div class="flex items-center gap-1 text-xs font-mono text-slate-500 mb-1.5">
                                 <span>$</span>display {{ image.title | default(value=(image.path | split(pat="/") | last)) }}
                             </div>
-                            <img src="{{ image.path }}" alt="{{ image.description | default(value='Blog Image') }}" class="block w-full object-cover border-0 p-0 rounded-none" loading="lazy">
+                            <img src="{{ image.path }}" alt="{{ image.description | default(value='Blog Image') }}" class="block w-full object-cover border-0 p-0 rounded-none" loading="lazy" {% if image.width and image.height %}width="{{ image.width }}" height="{{ image.height }}" style="aspect-ratio: {{ image.width }} / {{ image.height }}; height: auto;"{% endif %}>
                             {% if image.description %}
                                 <p class="text-xs font-mono text-slate-500 text-center mt-2">— {{ image.description }}</p>
                             {% endif %}

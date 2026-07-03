@@ -69,11 +69,17 @@ fn process_post_images(post: Post, associated_images: Vec<Image>) -> PostWithIma
                     }
                 };
                 
+                let size_attrs = match (image.width, image.height) {
+                    (Some(w), Some(h)) => format!(r#" width="{}" height="{}" style="aspect-ratio: {} / {}; height: auto;""#, w, h, w, h),
+                    _ => String::new()
+                };
+
                 let img_html = format!(
-                    r#"<div class="mt-6 mb-1 select-none text-left"><div class="flex items-center gap-1 text-xs font-mono text-slate-500 mb-1.5"><span>$</span>display {}</div><img src="{}" alt="{}" class="block w-full object-cover border-0 p-0 rounded-none" loading="lazy">{}</div>"#,
+                    r#"<div class="mt-6 mb-1 select-none text-left"><div class="flex items-center gap-1 text-xs font-mono text-slate-500 mb-1.5"><span>$</span>display {}</div><img src="{}" alt="{}" class="block w-full object-cover border-0 p-0 rounded-none" loading="lazy"{}>{}</div>"#,
                     display_name,
                     image.path,
                     image.description.as_deref().unwrap_or("Blog Image"),
+                    size_attrs,
                     desc_html
                 );
                 

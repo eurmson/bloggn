@@ -387,13 +387,6 @@
                         top: container.scrollHeight,
                         behavior: 'smooth'
                     });
-                    // Adjust scroll position after lazy-loaded images load/expand
-                    setTimeout(() => {
-                        container.scrollTo({
-                            top: container.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                    }, 300);
                 }
             });
         }

@@ -8,6 +8,8 @@ diesel::table! {
         description -> Nullable<Text>,
         tag -> Nullable<Text>,
         title -> Nullable<Text>,
+        width -> Nullable<Integer>,
+        height -> Nullable<Integer>,
     }
 }
 
