@@ -381,7 +381,7 @@
         if (jumpToBottomBtn) {
             jumpToBottomBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const container = postsContainer.parentElement;
+                const container = postsContainer.closest('.overflow-y-auto');
                 if (container) {
                     container.scrollTo({
                         top: container.scrollHeight,
