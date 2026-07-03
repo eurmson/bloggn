@@ -92,12 +92,12 @@
                     <span class="text-xs font-mono text-slate-500">~/blog</span>
                 </div>
 
-                <div class="flex items-center justify-between mb-12 gap-4 flex-wrap">
-                    <h1 class="text-4xl md:text-5xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent select-none">
+                <div class="mb-12">
+                    <h1 class="text-4xl md:text-5xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent select-none mb-3">
                         All Blog Posts
                     </h1>
-                    <a href="#bottom" id="jump-to-bottom-btn" class="text-slate-400 hover:text-indigo-400 font-mono text-xs transition-colors duration-200 flex items-center gap-1">
-                        <span>jump_to_bottom</span> <span class="text-lg">&darr;</span>
+                    <a href="#bottom" id="jump-to-bottom-btn" class="text-slate-400 hover:text-indigo-400 font-mono text-xs transition-colors duration-200 inline-flex items-center gap-1">
+                        <span>jump_to_newest</span> <span class="text-lg">&darr;</span>
                     </a>
                 </div>
 
