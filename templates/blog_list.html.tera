@@ -20,7 +20,7 @@
             <h1 class="text-4xl md:text-5xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent select-none mb-3">
                 All Blog Posts
             </h1>
-            <a href="#bottom" class="text-slate-400 hover:text-indigo-400 font-mono text-xs transition-colors duration-200 inline-flex items-center gap-1">
+            <a href="#" id="jump-to-bottom-btn" class="text-slate-400 hover:text-indigo-400 font-mono text-xs transition-colors duration-200 inline-flex items-center gap-1">
                 <span>jump_to_newest</span> <span class="text-lg">&darr;</span>
             </a>
         </div>
@@ -30,5 +30,17 @@
         <!-- Bottom Anchor -->
         <div id="bottom"></div>
     </div>
+    <script>
+        const jumpToBottomBtn = document.getElementById('jump-to-bottom-btn');
+        if (jumpToBottomBtn) {
+            jumpToBottomBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({
+                    top: document.documentElement.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+        }
+    </script>
 </body>
 </html>
