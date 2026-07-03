@@ -44,12 +44,19 @@ pub fn init_webauthn() -> Webauthn {
         .expect("Failed to build Webauthn")
 }
 
-#[get("/admin/login")]
-pub fn admin_login(cookies: &CookieJar<'_>) -> Result<Template, Redirect> {
+#[get("/admin/login?<redirect>")]
+pub fn admin_login(cookies: &CookieJar<'_>, redirect: Option<String>) -> Result<Template, Redirect> {
+    let safe_redirect = redirect.filter(|r| r.starts_with('/') && !r.starts_with("//"));
     if cookies.get_private("admin_logged_in").is_some() {
-        return Err(Redirect::to(uri!(admin_dashboard)));
+        if let Some(r) = safe_redirect {
+            return Err(Redirect::to(r));
+        } else {
+            return Err(Redirect::to(uri!(admin_dashboard)));
+        }
     }
-    Ok(Template::render("admin_login", context! {}))
+    Ok(Template::render("admin_login", context! {
+        redirect: safe_redirect
+    }))
 }
 
 #[derive(rocket::serde::Deserialize)]
@@ -158,7 +165,7 @@ pub fn login_finish(
 pub fn admin_register(mut conn: DbConn, user: Option<AdminUser>) -> Result<Template, Redirect> {
     let has_auth = actions::has_any_authorized_passkey(&mut conn);
     if has_auth && user.is_none() {
-        return Err(Redirect::to(uri!(admin_login)));
+        return Err(Redirect::to(uri!(admin_login(None::<String>))));
     }
     Ok(Template::render("admin_register", context! {
         has_existing_admin: has_auth
@@ -479,6 +486,12 @@ pub fn admin_logout(cookies: &CookieJar<'_>) -> Redirect {
 }
 
 #[catch(401)]
-pub fn unauthorized() -> Redirect {
-    Redirect::to(uri!(admin_login))
+pub fn unauthorized(req: &Request<'_>) -> Redirect {
+    if req.method() == rocket::http::Method::Get {
+        let redirect_uri = req.uri().to_string();
+        if !redirect_uri.starts_with("/admin/login") {
+            return Redirect::to(format!("/admin/login?redirect={}", redirect_uri));
+        }
+    }
+    Redirect::to(uri!(admin_login(None::<String>)))
 }

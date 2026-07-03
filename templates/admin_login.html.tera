@@ -129,7 +129,7 @@
                 }
 
                 statusText.innerText = '$ authentication successful. Redirecting...';
-                window.location.href = '/admin/dashboard';
+                window.location.href = "{{ redirect | default(value='/admin/dashboard') | safe }}";
 
             } catch (err) {
                 console.error(err);
