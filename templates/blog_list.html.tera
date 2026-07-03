@@ -16,11 +16,19 @@
             <span class="text-xs font-mono text-slate-500">~/blog</span>
         </div>
 
-        <h1 class="text-4xl md:text-5xl font-bold font-heading mb-12 tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent">
-            All Blog Posts
-        </h1>
+        <div class="flex items-center justify-between mb-12 gap-4 flex-wrap">
+            <h1 class="text-4xl md:text-5xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-200 via-indigo-400 to-purple-300 bg-clip-text text-transparent select-none">
+                All Blog Posts
+            </h1>
+            <a href="#bottom" class="px-3 py-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 font-mono text-xs transition-colors duration-200 flex items-center gap-1.5">
+                <span>jump_to_bottom</span> &darr;
+            </a>
+        </div>
 
         {% include "posts_loop" %}
+        
+        <!-- Bottom Anchor -->
+        <div id="bottom"></div>
     </div>
 </body>
 </html>
