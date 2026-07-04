@@ -1,5 +1,5 @@
-use crate::models::{Image, Post, PostWithImages, NewPost, NewImage};
-use crate::schema::{images, posts};
+use crate::models::{Image, Post, PostWithImages, NewPost, NewImage, ProfileModel};
+use crate::schema::{images, posts, profile};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
@@ -217,5 +217,19 @@ pub fn get_image(conn: &mut SqliteConnection, image_id: i32) -> Option<Image> {
         .ok()
 }
 
+pub fn get_profile(conn: &mut SqliteConnection) -> ProfileModel {
+    profile::table
+        .first::<ProfileModel>(conn)
+        .unwrap_or_else(|_| ProfileModel {
+            id: 1,
+            name: "Ethan Urmson".to_string(),
+            role: "Developer & Creator".to_string(),
+            bio: "I explore the intersection of technology and everyday life. By day, I build software; by night, I experiment in the kitchen and write about my journey.".to_string(),
+        })
+}
 
-
+pub fn update_profile(conn: &mut SqliteConnection, updated: ProfileModel) -> QueryResult<usize> {
+    diesel::update(profile::table.filter(profile::id.eq(updated.id)))
+        .set(&updated)
+        .execute(conn)
+}

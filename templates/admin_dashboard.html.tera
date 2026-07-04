@@ -23,56 +23,90 @@
         </header>
 
         <!-- Main Workspace Area -->
-        <main class="space-y-8">
-            <!-- Header Actions -->
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-mono text-indigo-300">$ list_blog_posts</h2>
-                <a href="/admin/posts/new" id="create-post-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
-                    + create_new_post
-                </a>
-            </div>
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Side: Blog Posts list (span 2) -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Header Actions -->
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-mono text-indigo-300">$ list_blog_posts</h2>
+                    <a href="/admin/posts/new" id="create-post-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
+                        + create_new_post
+                    </a>
+                </div>
 
-            <!-- Blog Posts List -->
-            <div class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm shadow-xl">
-                {% if posts | length > 0 %}
-                    <div class="divide-y divide-slate-800/80">
-                        {% for post in posts %}
-                            <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-900/30 transition-colors">
-                                <div class="space-y-1">
-                                    <h3 class="text-md font-semibold text-gray-200 hover:text-indigo-200 transition-colors">
-                                        <a href="/digitally-distracted/{{ post.id }}" target="_blank">{{ post.title }}</a>
-                                    </h3>
-                                    <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
-                                        <span>ID: {{ post.id }}</span>
-                                        <span>•</span>
-                                        <span>Published: {{ post.published_at }}</span>
-                                        <span>•</span>
-                                        <span>Images: {{ post.total_images }}</span>
+                <!-- Blog Posts List -->
+                <div class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm shadow-xl">
+                    {% if posts | length > 0 %}
+                        <div class="divide-y divide-slate-800/80">
+                            {% for post in posts %}
+                                <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-900/30 transition-colors">
+                                    <div class="space-y-1">
+                                        <h3 class="text-md font-semibold text-gray-200 hover:text-indigo-200 transition-colors">
+                                            <a href="/digitally-distracted/{{ post.id }}" target="_blank">{{ post.title }}</a>
+                                        </h3>
+                                        <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
+                                            <span>ID: {{ post.id }}</span>
+                                            <span>•</span>
+                                            <span>Published: {{ post.published_at }}</span>
+                                            <span>•</span>
+                                            <span>Images: {{ post.total_images }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex items-center gap-2">
+                                        <a href="/digitally-distracted/{{ post.id }}/edit" id="edit-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-800 text-slate-300 hover:text-indigo-200 font-mono text-xs transition-colors duration-200">
+                                            edit_post
+                                        </a>
+                                        
+                                        <form action="/admin/posts/delete/{{ post.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post and all its images?');" class="inline">
+                                            <button type="submit" id="delete-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-red-950/50 border border-slate-800 hover:border-red-800 text-slate-400 hover:text-red-300 font-mono text-xs transition-colors duration-200 cursor-pointer">
+                                                delete
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Empty State -->
+                        <div class="p-12 text-center text-slate-500 font-mono text-sm">
+                            <p>No blog posts found.</p>
+                            <p class="text-xs text-slate-600 mt-1">Get started by creating your first post using the button above.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
 
-                                <!-- Action Buttons -->
-                                <div class="flex items-center gap-2">
-                                    <a href="/digitally-distracted/{{ post.id }}/edit" id="edit-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-indigo-950/50 border border-slate-800 hover:border-indigo-800 text-slate-300 hover:text-indigo-200 font-mono text-xs transition-colors duration-200">
-                                        edit_post
-                                    </a>
-                                    
-                                    <form action="/admin/posts/delete/{{ post.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post and all its images?');" class="inline">
-                                        <button type="submit" id="delete-post-{{ post.id }}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-red-950/50 border border-slate-800 hover:border-red-800 text-slate-400 hover:text-red-300 font-mono text-xs transition-colors duration-200 cursor-pointer">
-                                            delete
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <!-- Empty State -->
-                    <div class="p-12 text-center text-slate-500 font-mono text-sm">
-                        <p>No blog posts found.</p>
-                        <p class="text-xs text-slate-600 mt-1">Get started by creating your first post using the button above.</p>
-                    </div>
-                {% endif %}
+            <!-- Right Side: Profile Editor (span 1) -->
+            <div class="space-y-6">
+                <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl space-y-4">
+                    <h2 class="text-md font-mono text-indigo-300">$ configure_profile</h2>
+                    
+                    <form action="/admin/profile" method="POST" class="space-y-4">
+                        <!-- Name Field -->
+                        <div>
+                            <label for="profile_name" class="block text-xs font-mono text-slate-500 mb-1.5">$ name</label>
+                            <input type="text" id="profile_name" name="name" value="{{ profile.name }}" required class="w-full bg-slate-900 border border-slate-800 p-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+
+                        <!-- Title/Role Field -->
+                        <div>
+                            <label for="profile_role" class="block text-xs font-mono text-slate-500 mb-1.5">$ title / role</label>
+                            <input type="text" id="profile_role" name="role" value="{{ profile.role }}" required class="w-full bg-slate-900 border border-slate-800 p-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+
+                        <!-- Bio Field -->
+                        <div>
+                            <label for="profile_bio" class="block text-xs font-mono text-slate-500 mb-1.5">$ bio_text</label>
+                            <textarea id="profile_bio" name="bio" rows="6" required class="w-full bg-slate-900 border border-slate-800 p-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors resize-y">{{ profile.bio }}</textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
+                            $ save_profile
+                        </button>
+                    </form>
+                </section>
             </div>
         </main>
     </div>

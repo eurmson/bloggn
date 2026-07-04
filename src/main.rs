@@ -12,12 +12,13 @@ mod auth;
 use db::{DbConn, SqlitePool};
 
 #[get("/")]
-fn index() -> Template {
+fn index(mut conn: DbConn) -> Template {
+    let profile = actions::get_profile(&mut conn);
     Template::render(
         "index",
         context! {
             title: "My Blog",
-            name: "Ethan Urmson",
+            profile: &profile,
             start_at_blog: false
         },
     )
@@ -26,11 +27,12 @@ fn index() -> Template {
 #[get("/digitally-distracted")]
 fn blog(mut conn: DbConn) -> Template {
     let posts = actions::get_all_posts_with_images(&mut conn);
+    let profile = actions::get_profile(&mut conn);
     Template::render(
         "index",
         context! {
             title: "My Blog",
-            name: "User",
+            profile: &profile,
             posts: &posts,
             start_at_blog: true
         },
@@ -140,6 +142,7 @@ fn rocket() -> _ {
             auth::delete_post_handler,
             auth::upload_image_handler,
             auth::delete_image_handler,
+            auth::update_profile_handler,
             auth::admin_redirect,
         ])
         .register("/", catchers![auth::unauthorized])

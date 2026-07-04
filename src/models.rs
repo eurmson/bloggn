@@ -1,6 +1,6 @@
 use crate::schema::*;
 use chrono::NaiveDateTime as Timestamp;
-use diesel::{Insertable, Queryable, Selectable};
+use diesel::{Insertable, Queryable, Selectable, AsChangeset};
 use serde::{Deserialize, Serialize}; // Explicitly added these
 
 #[derive(Queryable, Selectable, Serialize, Deserialize)]
@@ -66,5 +66,15 @@ pub struct PasskeyModel {
     pub username: String,
     pub passkey: String, // JSON string of webauthn_rs::prelude::Passkey
     pub authorized: bool,
+}
+
+#[derive(Queryable, Selectable, Insertable, AsChangeset, Serialize, Deserialize, Clone)]
+#[diesel(table_name = profile)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+pub struct ProfileModel {
+    pub id: i32,
+    pub name: String,
+    pub role: String,
+    pub bio: String,
 }
 

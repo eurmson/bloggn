@@ -31,6 +31,15 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    profile (id) {
+        id -> Integer,
+        name -> Text,
+        role -> Text,
+        bio -> Text,
+    }
+}
+
 diesel::joinable!(images -> posts (post_id));
 
-diesel::allow_tables_to_appear_in_same_query!(images, passkeys, posts,);
+diesel::allow_tables_to_appear_in_same_query!(images, passkeys, posts, profile,);

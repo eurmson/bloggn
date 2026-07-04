@@ -12,7 +12,7 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::db::DbConn;
-use crate::models::PasskeyModel;
+use crate::models::{PasskeyModel, ProfileModel};
 use crate::actions;
 
 pub struct AdminUser {
@@ -274,13 +274,41 @@ pub struct NewPostForm<'r> {
     file: Option<TempFile<'r>>,
 }
 
+#[derive(FromForm)]
+pub struct ProfileForm {
+    name: String,
+    role: String,
+    bio: String,
+}
+
 #[get("/admin/dashboard")]
 pub fn admin_dashboard(mut conn: DbConn, user: AdminUser) -> Template {
     let posts = actions::get_all_posts_with_images(&mut conn);
+    let profile = actions::get_profile(&mut conn);
     Template::render("admin_dashboard", context! {
         username: user.username,
-        posts: posts
+        posts: posts,
+        profile: profile
     })
+}
+
+#[post("/admin/profile", data = "<form>")]
+pub fn update_profile_handler(
+    mut conn: DbConn,
+    _user: AdminUser,
+    form: Form<ProfileForm>,
+) -> Result<Redirect, Custom<String>> {
+    let updated = ProfileModel {
+        id: 1,
+        name: form.name.clone(),
+        role: form.role.clone(),
+        bio: form.bio.clone(),
+    };
+
+    actions::update_profile(&mut conn, updated)
+        .map_err(|e| Custom(Status::InternalServerError, format!("Failed to update profile: {}", e)))?;
+
+    Ok(Redirect::to(uri!(admin_dashboard)))
 }
 
 #[get("/admin/posts/new")]

@@ -11,7 +11,7 @@
     <div id="slide-wrapper" class="w-screen h-[200vh] transition-transform duration-700 ease-in-out transform {% if start_at_blog %}-translate-y-1/2{% else %}translate-y-0{% endif %}">
         
         <!-- Viewport 1: Landing Page -->
-        <div class="h-screen w-screen relative flex items-center justify-center overflow-hidden">
+        <div class="h-screen w-screen relative flex flex-col items-center justify-start pt-8 pb-12 sm:pt-0 sm:pb-0 sm:justify-center overflow-y-auto sm:overflow-hidden">
             <!-- Canvas Background (inside Viewport 1, so it slides up) -->
             <canvas id="bg-canvas" class="absolute top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
 
@@ -26,15 +26,15 @@
 
                     <!-- Card Body -->
                     <h1 class="text-3xl font-bold font-heading text-indigo-200 mb-0.5 tracking-tight">
-                        {{ name }}
+                        {{ profile.name }}
                     </h1>
                     <p class="text-[10px] font-mono tracking-wider text-indigo-400 uppercase mb-4">
-                        Developer & Creator
+                        {{ profile.role }}
                     </p>
                     
                     <div class="space-y-4 text-slate-300 font-light text-sm leading-relaxed">
                         <p>
-                            I explore the intersection of technology and everyday life. By day, I build software; by night, I experiment in the kitchen and write about my journey.
+                            {{ profile.bio }}
                         </p>
                         <p class="text-xs font-mono text-slate-500 select-none mt-6">
                             $ hover corners --explore
@@ -44,26 +44,28 @@
             </div>
 
             <!-- Bottom Left Button: Culinary Studio (Light Mode Side - flat terminal style) -->
-            <div class="absolute bottom-8 left-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5">
-                <div class="p-4 rounded-none bg-slate-100/90 border border-slate-200 shadow-none backdrop-blur-sm flex flex-col text-left select-none max-w-[240px]">
-                    <div class="flex items-center gap-1 text-xs font-mono text-slate-400 mb-1.5">
-                        <span>$</span>ls culinary_studio/
+            <div class="relative sm:absolute mt-8 sm:mt-0 sm:bottom-8 sm:left-8 z-20 w-full max-w-[240px] transition-all duration-300 transform hover:-translate-y-0.5">
+                <div class="p-4 rounded-none bg-slate-100/90 border border-slate-200 shadow-none backdrop-blur-sm flex flex-col text-left select-none max-w-[240px] h-28">
+                    <div class="flex items-center justify-between gap-1 text-xs font-mono text-slate-400 mb-1.5">
+                        <div class="flex items-center gap-1">
+                            <span>$</span>ls culinary_studio/
+                        </div>
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[8px] font-mono bg-orange-100 text-orange-700 border border-orange-200">
+                            <span class="w-1 h-1 rounded-full bg-orange-500 animate-pulse"></span>
+                            [soon]
+                        </span>
                     </div>
                     <div class="border-b border-slate-200/80 mb-2"></div>
                     <span class="text-xs font-bold text-slate-800 mb-0.5">Culinary Studio</span>
                     <p class="text-[10px] text-slate-600 font-light leading-relaxed">
                         Recipes, kitchen logs, and culinary science.
                     </p>
-                    <span class="inline-flex items-center gap-1 self-start px-1.5 py-0.5 mt-2.5 rounded-none text-[8px] font-mono bg-orange-100 text-orange-700 border border-orange-200">
-                        <span class="w-1 h-1 rounded-full bg-orange-500 animate-pulse"></span>
-                        [soon]
-                    </span>
                 </div>
             </div>
 
             <!-- Bottom Right Button: Digitally Distracted (Dark Mode Side - flat terminal style) -->
-            <a href="/digitally-distracted" id="tech-blog-btn" class="absolute bottom-8 right-8 z-20 max-w-xs transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer text-left block">
-                <div class="p-4 rounded-none bg-slate-950/90 border border-slate-800 shadow-none backdrop-blur-sm hover:border-indigo-500/40 hover:bg-slate-900/60 flex flex-col text-left max-w-[240px]">
+            <a href="/digitally-distracted" id="tech-blog-btn" class="relative sm:absolute mt-4 sm:mt-0 sm:bottom-8 sm:right-8 z-20 w-full max-w-[240px] transition-all duration-300 transform hover:-translate-y-0.5 group cursor-pointer text-left block">
+                <div class="p-4 rounded-none bg-slate-950/90 border border-slate-800 shadow-none backdrop-blur-sm hover:border-indigo-500/40 hover:bg-slate-900/60 flex flex-col text-left max-w-[240px] h-28">
                     <div class="flex items-center justify-between gap-1 text-xs font-mono text-slate-500 mb-1.5">
                         <div class="flex items-center gap-1">
                             <span>$</span>cd digitally_distracted/
