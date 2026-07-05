@@ -16,3 +16,14 @@ services:
     volumes:
       # Persists SQLite DB and uploaded images in a local ./data directory
       - ./data:/data
+
+  # Cloudflare Tunnel sidecar container
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - web
