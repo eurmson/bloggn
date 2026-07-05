@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM rust:1.85-slim-bookworm AS builder
+FROM rust:slim-bookworm AS builder
 
 # Install system dependencies needed for compiling SQLite and downloading assets
 RUN apt-get update && apt-get install -y \
