@@ -28,6 +28,7 @@ diesel::table! {
         title -> Text,
         content -> Text,
         published_at -> Timestamp,
+        published -> Bool,
     }
 }
 

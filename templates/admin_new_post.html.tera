@@ -37,10 +37,16 @@
                                 <textarea id="content" name="content" rows="16" required placeholder="Write your post content here..." class="w-full bg-slate-900 border border-slate-800 p-2.5 text-sm font-mono text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors resize-y"></textarea>
                             </div>
 
+                            <!-- Draft Toggle Checkbox -->
+                            <div class="flex items-center gap-2 pt-4 border-t border-slate-900">
+                                <input type="checkbox" id="draft" name="draft" value="true" class="w-4 h-4 bg-slate-900 border border-slate-800 text-indigo-600 rounded focus:ring-indigo-500 focus:outline-none transition-colors cursor-pointer">
+                                <label for="draft" class="text-xs font-mono text-slate-405 select-none cursor-pointer">$ mark_as_draft</label>
+                            </div>
+
                             <!-- Form Actions -->
-                            <div class="flex items-center gap-3 pt-4 border-t border-slate-900">
+                            <div class="flex items-center gap-3">
                                 <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
-                                    $ publish_post
+                                    $ save_post
                                 </button>
                                 <a href="/admin/dashboard" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-slate-350 font-mono text-xs transition-colors duration-200">
                                     cancel

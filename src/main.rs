@@ -26,7 +26,7 @@ fn index(mut conn: DbConn) -> Template {
 
 #[get("/digitally-distracted")]
 fn blog(mut conn: DbConn) -> Template {
-    let posts = actions::get_all_posts_with_images(&mut conn);
+    let posts = actions::get_published_posts_with_images(&mut conn);
     let profile = actions::get_profile(&mut conn);
     Template::render(
         "index",
@@ -41,7 +41,7 @@ fn blog(mut conn: DbConn) -> Template {
 
 #[get("/digitally-distracted/partial")]
 fn blog_partial(mut conn: DbConn) -> Template {
-    let posts = actions::get_all_posts_with_images(&mut conn);
+    let posts = actions::get_published_posts_with_images(&mut conn);
     Template::render(
         "posts_loop",
         context! {
@@ -51,17 +51,21 @@ fn blog_partial(mut conn: DbConn) -> Template {
 }
 
 #[get("/digitally-distracted/<id>")]
-fn blog_post(mut conn: DbConn, id: i32) -> Option<Template> {
-    actions::get_single_post_with_images(&mut conn, id).map(|post| {
-        Template::render(
-            "blog_post",
-            context! {
-                title: &post.title,
-                content: &post.content,
-                post: &post,
-                images: &post.images
-            },
-        )
+fn blog_post(mut conn: DbConn, user: Option<auth::AdminUser>, id: i32) -> Option<Template> {
+    actions::get_single_post_with_images(&mut conn, id).and_then(|post| {
+        if !post.published && user.is_none() {
+            None
+        } else {
+            Some(Template::render(
+                "blog_post",
+                context! {
+                    title: &post.title,
+                    content: &post.content,
+                    post: &post,
+                    images: &post.images
+                },
+            ))
+        }
     })
 }
 

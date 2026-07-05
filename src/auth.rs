@@ -262,12 +262,14 @@ use rocket::fs::TempFile;
 pub struct PostForm {
     title: String,
     content: String,
+    draft: Option<bool>,
 }
 
 #[derive(FromForm)]
 pub struct NewPostForm<'r> {
     title: String,
     content: String,
+    draft: Option<bool>,
     img_title: Option<String>,
     description: Option<String>,
     tag: Option<String>,
@@ -327,6 +329,7 @@ pub async fn create_post_handler(
     let new_post = crate::models::NewPost {
         title: form.title.clone(),
         content: form.content.clone(),
+        published: !form.draft.unwrap_or(false),
     };
     
     // 1. Insert post to get generated ID
@@ -405,7 +408,7 @@ pub fn update_post_handler(
     id: i32,
     form: Form<PostForm>,
 ) -> Result<Redirect, Custom<String>> {
-    actions::update_post(&mut conn, id, form.title.clone(), form.content.clone())
+    actions::update_post(&mut conn, id, form.title.clone(), form.content.clone(), !form.draft.unwrap_or(false))
         .map_err(|e| Custom(Status::InternalServerError, format!("Failed to update post: {}", e)))?;
     Ok(Redirect::to(uri!(admin_dashboard)))
 }

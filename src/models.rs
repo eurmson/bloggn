@@ -11,6 +11,7 @@ pub struct Post {
     pub title: String,
     pub content: String,
     pub published_at: Timestamp, // Changed from Timestamp to String
+    pub published: bool,
 }
 
 #[derive(Insertable)]
@@ -18,6 +19,7 @@ pub struct Post {
 pub struct NewPost {
     pub title: String,
     pub content: String,
+    pub published: bool,
 }
 
 #[derive(Insertable)]
@@ -54,6 +56,7 @@ pub struct PostWithImages {
     pub title: String,
     pub content: String,
     pub published_at: Timestamp,
+    pub published: bool,
     pub images: Vec<Image>,
     pub total_images: usize,
 }

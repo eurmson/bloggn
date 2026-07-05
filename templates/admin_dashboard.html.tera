@@ -41,8 +41,11 @@
                             {% for post in posts %}
                                 <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-900/30 transition-colors">
                                     <div class="space-y-1">
-                                        <h3 class="text-md font-semibold text-gray-200 hover:text-indigo-200 transition-colors">
+                                        <h3 class="text-md font-semibold text-gray-200 hover:text-indigo-200 transition-colors flex items-center gap-2">
                                             <a href="/digitally-distracted/{{ post.id }}" target="_blank">{{ post.title }}</a>
+                                            {% if not post.published %}
+                                                <span class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 select-none">draft</span>
+                                            {% endif %}
                                         </h3>
                                         <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
                                             <span>ID: {{ post.id }}</span>

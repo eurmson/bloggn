@@ -26,6 +26,24 @@ pub fn get_all_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostWithIma
     result
 }
 
+pub fn get_published_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostWithImages> {
+    let all_posts = posts::table
+        .filter(posts::published.eq(true))
+        .load::<Post>(conn)
+        .expect("Error loading posts");
+
+    let mut result = Vec::new();
+    for post in all_posts {
+        let associated_images = images::table
+            .filter(images::post_id.eq(post.id))
+            .load::<Image>(conn)
+            .expect("Error loading images");
+        
+        result.push(process_post_images(post, associated_images));
+    }
+    result
+}
+
 pub fn get_single_post_with_images(
     conn: &mut SqliteConnection,
     post_id: i32,
@@ -105,6 +123,7 @@ fn process_post_images(post: Post, associated_images: Vec<Image>) -> PostWithIma
         title: post.title,
         content: final_content,
         published_at: post.published_at,
+        published: post.published,
         images: bottom_images,
         total_images: total_count,
     }
@@ -182,11 +201,12 @@ pub fn create_post(conn: &mut SqliteConnection, new_post: NewPost) -> QueryResul
         .first::<Post>(conn)
 }
 
-pub fn update_post(conn: &mut SqliteConnection, post_id: i32, new_title: String, new_content: String) -> QueryResult<usize> {
+pub fn update_post(conn: &mut SqliteConnection, post_id: i32, new_title: String, new_content: String, new_published: bool) -> QueryResult<usize> {
     diesel::update(posts::table.filter(posts::id.eq(post_id)))
         .set((
             posts::title.eq(new_title),
             posts::content.eq(new_content),
+            posts::published.eq(new_published),
         ))
         .execute(conn)
 }
