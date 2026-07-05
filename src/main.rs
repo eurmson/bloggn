@@ -117,6 +117,14 @@ fn rocket() -> _ {
         }
     }
 
+    let pool = db::init_pool();
+    {
+        use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+        pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+        let mut conn = pool.get().expect("Failed to get DB connection for migrations");
+        conn.run_pending_migrations(MIGRATIONS).expect("Failed to run database migrations");
+    }
+
     let image_dir = std::env::var("IMAGE_DIR").unwrap_or_else(|_| "static".to_string());
     let webauthn = auth::init_webauthn();
 
@@ -148,7 +156,7 @@ fn rocket() -> _ {
         .register("/", catchers![auth::unauthorized])
         .mount("/static", FileServer::from(image_dir))
         .attach(Template::fairing())
-        .manage(db::init_pool())
+        .manage(pool)
         .manage(webauthn)
 }
 

@@ -1,0 +1,18 @@
+services:
+  web:
+    image: ghcr.io/eurmson/bloggn:latest
+    container_name: bloggn
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    environment:
+      - DATABASE_URL=/data/diesel.db
+      - IMAGE_DIR=/data/static
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=8000
+      - ROCKET_PROFILE=release
+      # Load secret key from the host environment or .env file
+      - ROCKET_SECRET_KEY=${ROCKET_SECRET_KEY}
+    volumes:
+      # Persists SQLite DB and uploaded images in a local ./data directory
+      - ./data:/data
