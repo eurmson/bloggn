@@ -9,7 +9,7 @@ mod models;
 mod schema; // This will be generated later
 mod auth;
 
-use db::{DbConn, SqlitePool};
+use db::DbConn;
 
 #[get("/")]
 fn index(mut conn: DbConn) -> Template {

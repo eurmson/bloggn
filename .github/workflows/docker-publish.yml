@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     # Security constraint: only allow the owner 'eurmson' to trigger builds, and only on the 'main' branch
     if: github.actor == 'eurmson' && github.ref == 'refs/heads/main'
     permissions:
@@ -22,9 +22,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up QEMU for multi-platform builds (allows building arm64 on x86_64 runners)
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       # Set up Docker Buildx (enables advanced build features like multi-platform images)
       - name: Set up Docker Buildx
@@ -57,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

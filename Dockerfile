@@ -25,25 +25,14 @@ RUN ARCH=$(uname -m) && \
 
 WORKDIR /usr/src/bloggn
 
-# Copy manifest files first
-COPY Cargo.toml Cargo.lock ./
-
-# Create dummy files to allow compiling dependencies first
-RUN mkdir -p src && \
-    echo "fn main() {}" > src/main.rs && \
-    echo "fn main() {}" > build.rs
-
-# Compile dependencies only (this layer will be cached)
-RUN cargo build --release
-
-# Now copy the real application code (which overwrites the dummy files)
+# Copy the application code
 COPY . .
 
 # Set environment variables for compilation
 ENV TAILWIND_CLI_PATH=/usr/local/bin/tailwindcss
 ENV DATABASE_URL=diesel.db
 
-# Recompile the app with your real code (very fast!)
+# Build the release binary (this will run the real build.rs and generate output.css)
 RUN cargo build --release
 
 # Strip debugging symbols from the binary to make it as small as possible
