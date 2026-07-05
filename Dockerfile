@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     pkg-config \
     libsqlite3-dev \
+    libssl-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,6 +45,7 @@ FROM debian:bookworm-slim AS runner
 RUN apt-get update && apt-get install -y \
     libsqlite3-0 \
     ca-certificates \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
