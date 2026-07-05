@@ -13,6 +13,8 @@ services:
       - ROCKET_PROFILE=release
       # Load secret key from the host environment or .env file
       - ROCKET_SECRET_KEY=${ROCKET_SECRET_KEY}
+      - RP_ID=${RP_ID}
+      - RP_ORIGIN=${RP_ORIGIN}
     volumes:
       # Persists SQLite DB and uploaded images in a local ./data directory
       - ./data:/data
