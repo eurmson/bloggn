@@ -68,6 +68,8 @@ jobs:
   deploy:
     needs: build
     runs-on: [self-hosted, blog-pi]
+    env:
+      DOCKER_HOST: unix:///run/user/1001/docker.sock
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
