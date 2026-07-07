@@ -118,16 +118,70 @@ fn process_post_images(post: Post, associated_images: Vec<Image>) -> PostWithIma
         }
     }
 
+    let parsed_content = parse_links(&final_content);
+
     PostWithImages {
         id: post.id,
         title: post.title,
-        content: final_content,
+        content: parsed_content,
         published_at: post.published_at,
         published: post.published,
         images: bottom_images,
         total_images: total_count,
     }
 }
+
+fn parse_links(content: &str) -> String {
+    let mut result = String::new();
+    let mut remaining = content;
+
+    while let Some(start_idx) = remaining.find('[') {
+        result.push_str(&remaining[..start_idx]);
+        let tail = &remaining[start_idx + 1..];
+        
+        if let Some(end_idx) = tail.find(']') {
+            let inside = &tail[..end_idx];
+            
+            // Check for [text | link]
+            if let Some(pipe_idx) = inside.find('|') {
+                let text = inside[..pipe_idx].trim();
+                let link = inside[pipe_idx + 1..].trim();
+                result.push_str(&format!(
+                    r#"<a href="{}" class="post-link">{}</a>"#,
+                    link, text
+                ));
+                remaining = &tail[end_idx + 1..];
+                continue;
+            }
+            
+            // Check for [text](link)
+            let post_bracket = &tail[end_idx + 1..];
+            if post_bracket.starts_with('(') {
+                if let Some(paren_close_idx) = post_bracket.find(')') {
+                    let text = inside.trim();
+                    let link = post_bracket[1..paren_close_idx].trim();
+                    result.push_str(&format!(
+                        r#"<a href="{}" class="post-link">{}</a>"#,
+                        link, text
+                    ));
+                    remaining = &post_bracket[paren_close_idx + 1..];
+                    continue;
+                }
+            }
+            
+            // No valid link pattern, keep the [ and proceed
+            result.push('[');
+            remaining = tail;
+        } else {
+            // No closing bracket
+            result.push('[');
+            remaining = tail;
+        }
+    }
+    result.push_str(remaining);
+    result
+}
+
 
 pub fn get_post_with_images(
     conn: &mut SqliteConnection,
@@ -253,3 +307,37 @@ pub fn update_profile(conn: &mut SqliteConnection, updated: ProfileModel) -> Que
         .set(&updated)
         .execute(conn)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_links() {
+        assert_eq!(
+            parse_links("This is a [link | https://google.com] in my post."),
+            "This is a <a href=\"https://google.com\" class=\"post-link\">link</a> in my post."
+        );
+        assert_eq!(
+            parse_links("This is a [link|https://google.com] in my post."),
+            "This is a <a href=\"https://google.com\" class=\"post-link\">link</a> in my post."
+        );
+        assert_eq!(
+            parse_links("This is a [Google](https://google.com) in my post."),
+            "This is a <a href=\"https://google.com\" class=\"post-link\">Google</a> in my post."
+        );
+        assert_eq!(
+            parse_links("No links [here] at all."),
+            "No links [here] at all."
+        );
+        assert_eq!(
+            parse_links("Check out [img1] image tag."),
+            "Check out [img1] image tag."
+        );
+        assert_eq!(
+            parse_links("[link1 | url1] and [link2](url2)"),
+            "<a href=\"url1\" class=\"post-link\">link1</a> and <a href=\"url2\" class=\"post-link\">link2</a>"
+        );
+    }
+}
+

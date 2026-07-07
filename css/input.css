@@ -10,3 +10,7 @@
     font-family: var(--font-heading);
   }
 }
+
+.post-link {
+  @apply text-indigo-400 hover:text-indigo-300 underline transition-colors;
+}

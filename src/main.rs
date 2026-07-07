@@ -74,6 +74,17 @@ fn stylesheet() -> (rocket::http::ContentType, &'static str) {
     (rocket::http::ContentType::CSS, include_str!(concat!(env!("OUT_DIR"), "/output.css")))
 }
 
+#[get("/favicon.svg")]
+fn favicon_svg() -> (rocket::http::ContentType, &'static str) {
+    (rocket::http::ContentType::SVG, include_str!("../static/favicon.svg"))
+}
+
+#[get("/favicon.ico")]
+fn favicon_ico() -> (rocket::http::ContentType, &'static str) {
+    (rocket::http::ContentType::SVG, include_str!("../static/favicon.svg"))
+}
+
+
 #[launch]
 fn rocket() -> _ {
     dotenvy::dotenv().ok();
@@ -139,6 +150,8 @@ fn rocket() -> _ {
             blog_partial, 
             blog_post,
             stylesheet,
+            favicon_svg,
+            favicon_ico,
             auth::admin_login,
             auth::login_start,
             auth::login_finish,
