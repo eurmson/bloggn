@@ -12,7 +12,10 @@
         <header class="flex items-center justify-between mb-8 pb-4 border-b border-slate-800">
             <div class="flex items-center gap-4">
                 <a href="/admin/dashboard" class="text-xs font-mono text-slate-500 hover:text-indigo-400">&larr; back_to_dashboard</a>
-                <h1 class="text-2xl font-bold font-heading text-indigo-200 select-none">$ edit_post: {{ post.id }}</h1>
+                <h1 class="text-2xl font-bold font-heading text-indigo-200 select-none">
+                    $ edit_post: {{ post.id }}
+                    <span id="unsaved-asterisk" class="text-amber-500 font-sans hidden" title="Unsaved changes">*</span>
+                </h1>
             </div>
             
             <a href="/digitally-distracted/{{ post.id }}" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-xs transition-colors duration-200">
@@ -26,7 +29,7 @@
                 <main class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 md:p-8 shadow-xl">
                     <h2 class="text-md font-mono text-indigo-300 mb-6">$ modify_content</h2>
                     
-                    <form action="/digitally-distracted/{{ post.id }}/edit" method="POST" class="space-y-6">
+                    <form id="edit-post-form" action="/digitally-distracted/{{ post.id }}/edit" method="POST" class="space-y-6">
                         <!-- Title Field -->
                         <div>
                             <label for="title" class="block text-xs font-mono text-slate-500 mb-1.5">$ post_title</label>
@@ -46,13 +49,14 @@
                         </div>
 
                         <!-- Form Actions -->
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-4">
                             <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-semibold transition-colors duration-200 cursor-pointer">
                                 $ save_changes
                             </button>
                             <a href="/admin/dashboard" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-slate-350 font-mono text-xs transition-colors duration-200">
                                 cancel
                             </a>
+                            <span id="save-status" class="text-xs font-mono text-emerald-400 opacity-0 transition-opacity duration-300">changes saved</span>
                         </div>
                     </form>
                 </main>
@@ -64,7 +68,7 @@
                 <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl">
                     <h2 class="text-md font-mono text-indigo-300 mb-4">$ upload_image</h2>
                     
-                    <form action="/digitally-distracted/{{ post.id }}/edit/upload_image" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <form id="upload-image-form" action="/digitally-distracted/{{ post.id }}/edit/upload_image" method="POST" enctype="multipart/form-data" class="space-y-4">
                         <!-- File Input -->
                         <div>
                             <label for="file" class="block text-xs font-mono text-slate-500 mb-1.5">$ file_input</label>
@@ -97,7 +101,7 @@
                 </section>
 
                 <!-- List of Current Images -->
-                <section class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl space-y-4">
+                <section id="associated-media-section" class="border border-slate-800 bg-slate-950/60 backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-md font-mono text-indigo-300">$ associated_media</h2>
                     
                     {% if images %}
@@ -110,11 +114,15 @@
                                     <div class="space-y-1.5 text-xs">
                                         <div class="flex items-center justify-between font-mono">
                                             <span class="text-slate-300 font-semibold truncate max-w-[150px]" title="Display Title">{{ img.title | default(value=(img.path | split(pat="/") | last)) }}</span>
-                                            <span class="text-indigo-300">{{ img.tag | default(value='[no tag]') }}</span>
+                                            {% if img.tag %}
+                                                <span class="text-indigo-300 cursor-pointer hover:underline insert-tag-btn font-semibold" data-tag="{{ img.tag }}" title="Click to insert tag at cursor position">{{ img.tag }}</span>
+                                            {% else %}
+                                                <span class="text-slate-600 italic select-none">[no tag]</span>
+                                            {% endif %}
                                         </div>
                                         <div class="flex items-center justify-between font-mono pt-1 text-[10px] border-t border-slate-900">
                                             <span class="text-slate-500 truncate max-w-[180px] select-all">{{ img.path }}</span>
-                                            <form action="/digitally-distracted/{{ post.id }}/edit/delete_image/{{ img.id }}" method="POST" onsubmit="return confirm('Delete this image?');">
+                                            <form action="/digitally-distracted/{{ post.id }}/edit/delete_image/{{ img.id }}" method="POST" class="delete-image-form">
                                                 <button type="submit" class="text-red-400 hover:text-red-300 font-semibold cursor-pointer">
                                                     [delete]
                                                 </button>
@@ -132,5 +140,212 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadForm = document.getElementById('upload-image-form');
+            const mediaSection = document.getElementById('associated-media-section');
+            const contentTextarea = document.getElementById('content');
+            const titleInput = document.getElementById('title');
+            const draftCheckbox = document.getElementById('draft');
+            const unsavedAsterisk = document.getElementById('unsaved-asterisk');
+            const editForm = document.getElementById('edit-post-form');
+            const saveStatus = document.getElementById('save-status');
+
+            // Track initial form values for detecting unsaved changes
+            let initialValues = {
+                title: titleInput ? titleInput.value : '',
+                content: contentTextarea ? contentTextarea.value : '',
+                draft: draftCheckbox ? draftCheckbox.checked : false
+            };
+
+            function hasUnsavedChanges() {
+                const currentTitle = titleInput ? titleInput.value : '';
+                const currentContent = contentTextarea ? contentTextarea.value : '';
+                const currentDraft = draftCheckbox ? draftCheckbox.checked : false;
+
+                return currentTitle !== initialValues.title ||
+                       currentContent !== initialValues.content ||
+                       currentDraft !== initialValues.draft;
+            }
+
+            function checkUnsavedStatus() {
+                if (hasUnsavedChanges()) {
+                    if (unsavedAsterisk) unsavedAsterisk.classList.remove('hidden');
+                } else {
+                    if (unsavedAsterisk) unsavedAsterisk.classList.add('hidden');
+                }
+            }
+
+            // Bind change listeners to detect edits
+            if (titleInput) titleInput.addEventListener('input', checkUnsavedStatus);
+            if (contentTextarea) contentTextarea.addEventListener('input', checkUnsavedStatus);
+            if (draftCheckbox) draftCheckbox.addEventListener('change', checkUnsavedStatus);
+
+            // Warning popup on navigation if there are unsaved changes
+            window.addEventListener('beforeunload', (e) => {
+                if (hasUnsavedChanges()) {
+                    e.preventDefault();
+                    e.returnValue = ''; // Required for browser's unsaved changes dialog
+                }
+            });
+
+            // Helper to parse returned HTML and update the associated media section
+            async function refreshMediaSection(htmlText) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const newMediaSection = doc.getElementById('associated-media-section');
+                if (newMediaSection && mediaSection) {
+                    mediaSection.innerHTML = newMediaSection.innerHTML;
+                }
+            }
+
+            // Handle Save Changes via AJAX
+            if (editForm) {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const submitBtn = editForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '$ saving...';
+
+                    const formData = new FormData(editForm);
+
+                    try {
+                        const response = await fetch(editForm.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            // Update initial values to current values on success
+                            initialValues = {
+                                title: titleInput ? titleInput.value : '',
+                                content: contentTextarea ? contentTextarea.value : '',
+                                draft: draftCheckbox ? draftCheckbox.checked : false
+                            };
+                            checkUnsavedStatus();
+
+                            // Show "changes saved" green indicator
+                            if (saveStatus) {
+                                saveStatus.classList.remove('opacity-0');
+                                saveStatus.classList.add('opacity-100');
+                                setTimeout(() => {
+                                    saveStatus.classList.remove('opacity-100');
+                                    saveStatus.classList.add('opacity-0');
+                                }, 3000);
+                            }
+                        } else {
+                            const errText = await response.text();
+                            alert('Save failed: ' + errText);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Save failed due to a network error.');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                });
+            }
+
+            // Handle asynchronous upload
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'uploading...';
+
+                    const formData = new FormData(uploadForm);
+
+                    try {
+                        const response = await fetch(uploadForm.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            const htmlText = await response.text();
+                            await refreshMediaSection(htmlText);
+                            uploadForm.reset();
+                        } else {
+                            const errText = await response.text();
+                            alert('Upload failed: ' + errText);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Upload failed due to a network error.');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                });
+            }
+
+            // Handle asynchronous deletion using event delegation
+            document.addEventListener('submit', async (e) => {
+                const form = e.target;
+                if (form.classList.contains('delete-image-form')) {
+                    e.preventDefault();
+
+                    if (!confirm('Delete this image?')) {
+                        return;
+                    }
+
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '[deleting...]';
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST'
+                        });
+
+                        if (response.ok) {
+                            const htmlText = await response.text();
+                            await refreshMediaSection(htmlText);
+                        } else {
+                            const errText = await response.text();
+                            alert('Delete failed: ' + errText);
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalBtnText;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Delete failed due to a network error.');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalBtnText;
+                    }
+                }
+            });
+
+            // Insert tag at cursor position when tag label is clicked
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('insert-tag-btn')) {
+                    const tag = e.target.getAttribute('data-tag');
+                    if (tag && contentTextarea) {
+                        const startPos = contentTextarea.selectionStart;
+                        const endPos = contentTextarea.selectionEnd;
+                        const text = contentTextarea.value;
+
+                        // Insert tag and place cursor after it
+                        contentTextarea.value = text.substring(0, startPos) + tag + text.substring(endPos);
+                        contentTextarea.focus();
+                        const newCursorPos = startPos + tag.length;
+                        contentTextarea.setSelectionRange(newCursorPos, newCursorPos);
+                        checkUnsavedStatus();
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

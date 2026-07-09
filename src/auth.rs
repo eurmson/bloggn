@@ -410,7 +410,7 @@ pub fn update_post_handler(
 ) -> Result<Redirect, Custom<String>> {
     actions::update_post(&mut conn, id, form.title.clone(), form.content.clone(), !form.draft.unwrap_or(false))
         .map_err(|e| Custom(Status::InternalServerError, format!("Failed to update post: {}", e)))?;
-    Ok(Redirect::to(uri!(admin_dashboard)))
+    Ok(Redirect::to(uri!(edit_post(id))))
 }
 
 #[post("/admin/posts/delete/<id>")]
@@ -557,5 +557,72 @@ fn is_valid_route(path: &str) -> bool {
         ["digitally-distracted", id] => id.chars().all(|c| c.is_ascii_digit()),
         ["digitally-distracted", id, "edit"] => id.chars().all(|c| c.is_ascii_digit()),
         _ => false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rocket::local::blocking::Client;
+    use rocket::http::{Status, Cookie};
+    use std::env;
+
+    #[test]
+    fn test_is_valid_route() {
+        assert!(is_valid_route("/"));
+        assert!(is_valid_route("/admin"));
+        assert!(is_valid_route("/admin/dashboard"));
+        assert!(is_valid_route("/admin/login"));
+        assert!(is_valid_route("/admin/register"));
+        assert!(is_valid_route("/digitally-distracted"));
+        assert!(is_valid_route("/digitally-distracted/partial"));
+        assert!(is_valid_route("/digitally-distracted/123"));
+        assert!(is_valid_route("/digitally-distracted/123/edit"));
+
+        assert!(!is_valid_route("http://google.com"));
+        assert!(!is_valid_route("https://google.com"));
+        assert!(!is_valid_route("//google.com"));
+        assert!(!is_valid_route("/other"));
+        assert!(!is_valid_route("/admin/dashboard/extra"));
+        assert!(!is_valid_route("/digitally-distracted/123a"));
+    }
+
+    #[test]
+    fn test_admin_user_request_guard() {
+        unsafe {
+            env::set_var("DATABASE_URL", ":memory:");
+            env::set_var("RP_ID", "localhost");
+            env::set_var("RP_ORIGIN", "http://localhost:8000");
+        }
+
+        let rocket = crate::rocket();
+        let client = Client::tracked(rocket).expect("valid rocket instance");
+
+        // 1. Without cookie, requesting dashboard redirects to login
+        let response = client.get("/admin/dashboard").dispatch();
+        assert_eq!(response.status(), Status::SeeOther); // 303 redirect
+        assert_eq!(response.headers().get_one("Location"), Some("/admin/login?redirect=/admin/dashboard"));
+
+        // 2. With cookie, requesting dashboard succeeds
+        let cookie = Cookie::new("admin_logged_in", "test_admin");
+        let response = client.get("/admin/dashboard")
+            .private_cookie(cookie)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    fn test_admin_login_page() {
+        unsafe {
+            env::set_var("DATABASE_URL", ":memory:");
+            env::set_var("RP_ID", "localhost");
+            env::set_var("RP_ORIGIN", "http://localhost:8000");
+        }
+
+        let rocket = crate::rocket();
+        let client = Client::tracked(rocket).expect("valid rocket instance");
+
+        let response = client.get("/admin/login").dispatch();
+        assert_eq!(response.status(), Status::Ok);
     }
 }

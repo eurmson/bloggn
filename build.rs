@@ -79,4 +79,35 @@ fn main() {
             );
         }
     }
+
+    // Set compiler cfg flags for integration testing if webdrivers are present
+    println!("cargo::rustc-check-cfg=cfg(has_chromedriver)");
+    println!("cargo::rustc-check-cfg=cfg(has_geckodriver)");
+
+    if read_env_var("CHROMEDRIVER_PATH").is_some() {
+        println!("cargo:rustc-cfg=has_chromedriver");
+    }
+    if read_env_var("GECKODRIVER_PATH").is_some() {
+        println!("cargo:rustc-cfg=has_geckodriver");
+    }
+}
+
+fn read_env_var(var_name: &str) -> Option<String> {
+    if let Ok(val) = env::var(var_name) {
+        return Some(val);
+    }
+    if let Ok(content) = std::fs::read_to_string(".env") {
+        for line in content.lines() {
+            let line = line.trim();
+            if line.starts_with('#') || line.is_empty() {
+                continue;
+            }
+            if let Some((key, value)) = line.split_once('=') {
+                if key.trim() == var_name {
+                    return Some(value.trim().to_string());
+                }
+            }
+        }
+    }
+    None
 }
