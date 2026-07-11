@@ -38,39 +38,7 @@ RUN cargo build --release
 # Strip debugging symbols from the binary to make it as small as possible
 RUN strip target/release/bloggn
 
-# Stage 2: Minimal runtime image
-FROM debian:bookworm-slim AS runner
-
-# Install minimal runtime packages (SQLite library and CA Certificates for webauthn/TLS)
-RUN apt-get update && apt-get install -y \
-    libsqlite3-0 \
-    ca-certificates \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Copy the compiled binary and templates (templates are loaded at runtime)
-COPY --from=builder /usr/src/bloggn/target/release/bloggn /app/bloggn
-COPY --from=builder /usr/src/bloggn/templates /app/templates
-
-# Create directory to mount our persistent data volume (DB & uploads)
-RUN mkdir -p /data
-
-# Default environment variables for Rocket and the app
-ENV ROCKET_ADDRESS=0.0.0.0
-ENV ROCKET_PORT=8000
-ENV ROCKET_PROFILE=release
-ENV DATABASE_URL=/data/diesel.db
-ENV IMAGE_DIR=/data/static
-
-# Expose port 8000 for network access
-EXPOSE 8000
-
-# Run the binary
-CMD ["/app/bloggn"]
-
-# Stage 3: Test runner
+# Stage 2: Test runner
 FROM builder AS tester
 
 # Ensure static directories exist as they are gitignored and needed by Rocket FileServer during tests
@@ -109,3 +77,36 @@ RUN cargo test --no-run --release
 
 # Run the test suite
 CMD ["cargo", "test", "--release"]
+
+# Stage 3: Minimal runtime image
+FROM debian:bookworm-slim AS runner
+
+# Install minimal runtime packages (SQLite library and CA Certificates for webauthn/TLS)
+RUN apt-get update && apt-get install -y \
+    libsqlite3-0 \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the compiled binary and templates (templates are loaded at runtime)
+COPY --from=builder /usr/src/bloggn/target/release/bloggn /app/bloggn
+COPY --from=builder /usr/src/bloggn/templates /app/templates
+
+# Create directory to mount our persistent data volume (DB & uploads)
+RUN mkdir -p /data
+
+# Default environment variables for Rocket and the app
+ENV ROCKET_ADDRESS=0.0.0.0
+ENV ROCKET_PORT=8000
+ENV ROCKET_PROFILE=release
+ENV DATABASE_URL=/data/diesel.db
+ENV IMAGE_DIR=/data/static
+
+# Expose port 8000 for network access
+EXPOSE 8000
+
+# Run the binary
+CMD ["/app/bloggn"]
+

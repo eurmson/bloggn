@@ -54,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          target: runner
           platforms: linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -61,6 +62,7 @@ jobs:
           # Use GitHub Action cache to speed up Docker layer building
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
 
   deploy:
     needs: build
