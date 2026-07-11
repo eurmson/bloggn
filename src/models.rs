@@ -59,6 +59,7 @@ pub struct PostWithImages {
     pub published: bool,
     pub images: Vec<Image>,
     pub total_images: usize,
+    pub has_more: bool,
 }
 
 #[derive(Queryable, Selectable, Insertable, Serialize, Deserialize, Clone)]

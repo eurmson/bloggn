@@ -21,12 +21,12 @@ pub fn get_all_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostWithIma
             .load::<Image>(conn)
             .expect("Error loading images");
         
-        result.push(process_post_images(post, associated_images));
+        result.push(process_post_images(post, associated_images, None));
     }
     result
 }
 
-pub fn get_published_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostWithImages> {
+pub fn get_published_posts_with_images(conn: &mut SqliteConnection, char_limit: Option<usize>) -> Vec<PostWithImages> {
     let all_posts = posts::table
         .filter(posts::published.eq(true))
         .load::<Post>(conn)
@@ -39,7 +39,7 @@ pub fn get_published_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostW
             .load::<Image>(conn)
             .expect("Error loading images");
         
-        result.push(process_post_images(post, associated_images));
+        result.push(process_post_images(post, associated_images, char_limit));
     }
     result
 }
@@ -58,12 +58,44 @@ pub fn get_single_post_with_images(
         .load::<Image>(conn)
         .ok()?;
 
-    Some(process_post_images(post, associated_images))
+    Some(process_post_images(post, associated_images, None))
 }
 
-fn process_post_images(post: Post, associated_images: Vec<Image>) -> PostWithImages {
+fn process_post_images(post: Post, associated_images: Vec<Image>, char_limit: Option<usize>) -> PostWithImages {
     let total_count = associated_images.len();
-    let mut final_content = post.content.clone();
+    let mut initial_content = post.content.clone();
+    
+    // Strip image tags if char_limit is active to prevent rendering partial HTML tags or inline images in preview
+    if char_limit.is_some() {
+        for image in &associated_images {
+            if let Some(ref tag) = image.tag {
+                if !tag.is_empty() {
+                    initial_content = initial_content.replace(tag, "");
+                }
+            }
+        }
+    }
+
+    let original_len = initial_content.chars().count();
+    let (mut final_content, has_more) = match char_limit {
+        Some(limit) if original_len > limit => {
+            let mut byte_idx = 0;
+            for (i, (b_idx, _)) in initial_content.char_indices().enumerate() {
+                if i == limit {
+                    byte_idx = b_idx;
+                    break;
+                }
+            }
+            let truncated = if byte_idx == 0 {
+                &initial_content
+            } else {
+                &initial_content[..byte_idx]
+            };
+            (truncated.to_string(), true)
+        }
+        _ => (initial_content, false)
+    };
+
     let mut bottom_images = Vec::new();
 
     for image in associated_images {
@@ -128,6 +160,7 @@ fn process_post_images(post: Post, associated_images: Vec<Image>) -> PostWithIma
         published: post.published,
         images: bottom_images,
         total_images: total_count,
+        has_more,
     }
 }
 

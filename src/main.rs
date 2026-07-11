@@ -26,26 +26,26 @@ fn index(mut conn: DbConn) -> Template {
 
 #[get("/digitally-distracted")]
 fn blog(mut conn: DbConn) -> Template {
-    let posts = actions::get_published_posts_with_images(&mut conn);
     let profile = actions::get_profile(&mut conn);
     Template::render(
         "index",
         context! {
             title: "My Blog",
             profile: &profile,
-            posts: &posts,
             start_at_blog: true
         },
     )
 }
 
-#[get("/digitally-distracted/partial")]
-fn blog_partial(mut conn: DbConn) -> Template {
-    let posts = actions::get_published_posts_with_images(&mut conn);
+#[get("/digitally-distracted/partial?<char_limit>&<lines>")]
+fn blog_partial(mut conn: DbConn, char_limit: Option<usize>, lines: Option<usize>) -> Template {
+    let posts = actions::get_published_posts_with_images(&mut conn, char_limit);
+    let lines_to_show = lines.unwrap_or(5);
     Template::render(
         "posts_loop",
         context! {
-            posts: &posts
+            posts: &posts,
+            lines: lines_to_show
         },
     )
 }

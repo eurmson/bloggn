@@ -395,6 +395,30 @@
         }
         let postsLoaded = {% if posts %}true{% else %}false{% endif %};
 
+        function getLinesCount() {
+            return window.innerWidth < 640 ? 10 : 5;
+        }
+
+        function estimateCharsPerLine(lines) {
+            const container = document.getElementById('posts-container');
+            const width = container.clientWidth || 600;
+            // Create a temporary element to measure average character width dynamically
+            const tempSpan = document.createElement('span');
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.whiteSpace = 'nowrap';
+            tempSpan.className = 'text-slate-400 font-light text-sm leading-relaxed max-w-3xl';
+            tempSpan.textContent = 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789';
+            document.body.appendChild(tempSpan);
+            const charWidth = tempSpan.getBoundingClientRect().width / tempSpan.textContent.length;
+            document.body.removeChild(tempSpan);
+            
+            const charsPerLine = width / (charWidth || 8);
+            // Overestimate somewhat (e.g. multiply by 1.8) to account for formatting, word wrap, etc.
+            const totalChars = Math.ceil(charsPerLine * lines * 1.8);
+            return Math.max(300, totalChars);
+        }
+
         function openBlog(pushState = true) {
             slideWrapper.classList.remove('translate-y-0');
             slideWrapper.classList.add('-translate-y-1/2');
@@ -404,7 +428,9 @@
 
             // Lazy load blog posts if not already loaded
             if (!postsLoaded) {
-                fetch('/digitally-distracted/partial')
+                const lines = getLinesCount();
+                const charLimit = estimateCharsPerLine(lines);
+                fetch(`/digitally-distracted/partial?char_limit=${charLimit}&lines=${lines}`)
                     .then(response => response.text())
                     .then(html => {
                         postsContainer.innerHTML = html;
@@ -451,6 +477,7 @@
         const isInitialBlog = {% if start_at_blog %}true{% else %}false{% endif %};
         if (isInitialBlog) {
             history.replaceState({ view: 'blog' }, '', '/digitally-distracted');
+            openBlog(false);
         } else {
             history.replaceState({ view: 'index' }, '', '/');
         }
