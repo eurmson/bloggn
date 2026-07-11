@@ -268,11 +268,7 @@ pub fn has_any_authorized_passkey(conn: &mut SqliteConnection) -> bool {
 pub fn create_post(conn: &mut SqliteConnection, new_post: NewPost) -> QueryResult<Post> {
     diesel::insert_into(posts::table)
         .values(&new_post)
-        .execute(conn)?;
-    
-    posts::table
-        .order(posts::id.desc())
-        .first::<Post>(conn)
+        .get_result::<Post>(conn)
 }
 
 pub fn update_post(conn: &mut SqliteConnection, post_id: i32, new_title: String, new_content: String, new_published: bool) -> QueryResult<usize> {

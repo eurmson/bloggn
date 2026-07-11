@@ -8,7 +8,7 @@ rocket = { version = "0.5.1", features = ["secrets", "json"] }
 serde_json = "1.0"
 url = "2.5"
 rshtml = "0.6.1"
-diesel = { version = "2.3.10", features = ["sqlite", "r2d2", "chrono"] }
+diesel = { version = "2.3.10", features = ["sqlite", "r2d2", "chrono", "returning_clauses_for_sqlite_3_35"] }
 rocket_dyn_templates = { version = "0.2.0", features = ["tera"] }
 diesel_migrations = { version = "2.3.0" }
 r2d2 = "0.8.10"
