@@ -80,7 +80,7 @@ RUN apt-get update && apt-get install -y \
     firefox-esr \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install geckodriver
+# Download and install geckodriver (pinned version to avoid GitHub API rate limits in CI)
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
         GECKO_ARCH="linux64"; \
@@ -89,7 +89,8 @@ RUN ARCH=$(uname -m) && \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    GECKODRIVER_URL=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep browser_download_url | grep "$GECKO_ARCH" | cut -d '"' -f 4) && \
+    GECKO_VER="v0.34.0" && \
+    GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/${GECKO_VER}/geckodriver-${GECKO_VER}-${GECKO_ARCH}.tar.gz" && \
     curl -sL -o /tmp/geckodriver.tar.gz "$GECKODRIVER_URL" && \
     tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
     rm /tmp/geckodriver.tar.gz && \
