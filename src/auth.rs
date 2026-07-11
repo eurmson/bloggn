@@ -566,6 +566,9 @@ mod tests {
     use rocket::local::blocking::Client;
     use rocket::http::{Status, Cookie};
     use std::env;
+    use std::sync::Mutex;
+
+    static TEST_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_is_valid_route() {
@@ -589,6 +592,7 @@ mod tests {
 
     #[test]
     fn test_admin_user_request_guard() {
+        let _lock = TEST_MUTEX.lock().unwrap();
         unsafe {
             env::set_var("DATABASE_URL", ":memory:");
             env::set_var("RP_ID", "localhost");
@@ -613,6 +617,7 @@ mod tests {
 
     #[test]
     fn test_admin_login_page() {
+        let _lock = TEST_MUTEX.lock().unwrap();
         unsafe {
             env::set_var("DATABASE_URL", ":memory:");
             env::set_var("RP_ID", "localhost");
@@ -624,5 +629,49 @@ mod tests {
 
         let response = client.get("/admin/login").dispatch();
         assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    fn test_draft_post_preview() {
+        let _lock = TEST_MUTEX.lock().unwrap();
+        let db_path = "test_draft_post.db";
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
+        }
+
+        {
+            unsafe {
+                env::set_var("DATABASE_URL", db_path);
+                env::set_var("RP_ID", "localhost");
+                env::set_var("RP_ORIGIN", "http://localhost:8000");
+            }
+
+            let rocket = crate::rocket();
+            let pool = rocket.state::<crate::db::SqlitePool>().expect("DB pool not attached").clone();
+            let client = Client::tracked(rocket).expect("valid rocket instance");
+            let mut conn = pool.get().expect("Failed to get DB connection");
+
+            let new_post = crate::models::NewPost {
+                title: "Draft Test Post".to_string(),
+                content: "This is draft content".to_string(),
+                published: false,
+            };
+            let post = crate::actions::create_post(&mut conn, new_post).expect("Failed to create post");
+
+            // 1. Without cookie, requesting draft post should return 404 (NotFound)
+            let response = client.get(format!("/digitally-distracted/{}", post.id)).dispatch();
+            assert_eq!(response.status(), Status::NotFound);
+
+            // 2. With cookie, requesting draft post should return 200 (Ok)
+            let cookie = Cookie::new("admin_logged_in", "test_admin");
+            let response = client.get(format!("/digitally-distracted/{}", post.id))
+                .private_cookie(cookie)
+                .dispatch();
+            assert_eq!(response.status(), Status::Ok);
+        }
+
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
+        }
     }
 }

@@ -149,7 +149,20 @@ async fn setup_test_session(
         "firefox" => spawn_geckodriver(webdriver_port)?,
         _ => return None,
     };
-    thread::sleep(Duration::from_millis(500));
+
+    // Poll the Webdriver TCP port until it is open (wait up to 5 seconds)
+    let mut driver_ready = false;
+    for _ in 0..50 {
+        if std::net::TcpStream::connect(format!("127.0.0.1:{}", webdriver_port)).is_ok() {
+            driver_ready = true;
+            break;
+        }
+        thread::sleep(Duration::from_millis(100));
+    }
+    if !driver_ready {
+        println!("[TEST-DEBUG] Webdriver did not start on port {}", webdriver_port);
+        return None;
+    }
 
     // 2. Locate active Cargo target directory (e.g. target/debug or target/release)
     let target_dir = Path::new(env!("CARGO_BIN_EXE_bloggn"))
@@ -190,7 +203,20 @@ async fn setup_test_session(
         driver: None,
         success: false,
     };
-    thread::sleep(Duration::from_millis(2000));
+
+    // Poll the Rocket server TCP port until it is open (wait up to 10 seconds)
+    let mut server_ready = false;
+    for _ in 0..100 {
+        if std::net::TcpStream::connect(format!("127.0.0.1:{}", server_port)).is_ok() {
+            server_ready = true;
+            break;
+        }
+        thread::sleep(Duration::from_millis(100));
+    }
+    if !server_ready {
+        println!("[TEST-DEBUG] Rocket server did not start on port {}", server_port);
+        return None;
+    }
 
     // 6. Connect WebDriver and log in by injecting authenticated cookie
     let driver = match WebDriver::new(&webdriver_url, caps).await {
@@ -234,7 +260,12 @@ async fn create_test_post(driver: &WebDriver, server_port: u16) -> Result<(), Bo
 
     let submit_btn = driver.query(By::Css("button[type='submit']")).first().await?;
     submit_btn.click().await?;
-    thread::sleep(Duration::from_millis(500));
+    
+    // Wait until redirected page loads
+    let _ = driver.query(By::Id("create-post-btn"))
+        .wait(Duration::from_secs(5), Duration::from_millis(100))
+        .first()
+        .await?;
     Ok(())
 }
 
@@ -325,9 +356,9 @@ async fn test_chrome_image_upload() -> Result<(), Box<dyn std::error::Error>> {
     let upload_btn = ctx.driver().query(By::XPath("//button[contains(text(), '$ execute_upload')]")).first().await?;
     upload_btn.click().await?;
 
-    // Implicit wait: driver.query().first() polls automatically until the tag button is rendered (wait max 3s)
+    // Implicit wait: driver.query().first() polls automatically until the tag button is rendered (wait max 10s)
     let insert_tag_btn = ctx.driver().query(By::ClassName("insert-tag-btn"))
-        .wait(Duration::from_secs(3), Duration::from_millis(100))
+        .wait(Duration::from_secs(10), Duration::from_millis(100))
         .first()
         .await?;
     assert_eq!(insert_tag_btn.text().await?, "[img1]");
@@ -376,9 +407,9 @@ async fn test_chrome_image_delete() -> Result<(), Box<dyn std::error::Error>> {
     let upload_btn = ctx.driver().query(By::XPath("//button[contains(text(), '$ execute_upload')]")).first().await?;
     upload_btn.click().await?;
 
-    // Wait implicitly for upload to complete (wait max 3s)
+    // Wait implicitly for upload to complete (wait max 10s)
     let _insert_tag_btn = ctx.driver().query(By::ClassName("insert-tag-btn"))
-        .wait(Duration::from_secs(3), Duration::from_millis(100))
+        .wait(Duration::from_secs(10), Duration::from_millis(100))
         .first()
         .await?;
 
@@ -494,7 +525,7 @@ async fn test_firefox_image_upload() -> Result<(), Box<dyn std::error::Error>> {
     upload_btn.click().await?;
 
     let insert_tag_btn = ctx.driver().query(By::ClassName("insert-tag-btn"))
-        .wait(Duration::from_secs(3), Duration::from_millis(100))
+        .wait(Duration::from_secs(10), Duration::from_millis(100))
         .first()
         .await?;
     assert_eq!(insert_tag_btn.text().await?, "[img1]");
@@ -543,7 +574,7 @@ async fn test_firefox_image_delete() -> Result<(), Box<dyn std::error::Error>> {
     upload_btn.click().await?;
 
     let _insert_tag_btn = ctx.driver().query(By::ClassName("insert-tag-btn"))
-        .wait(Duration::from_secs(3), Duration::from_millis(100))
+        .wait(Duration::from_secs(10), Duration::from_millis(100))
         .first()
         .await?;
 
