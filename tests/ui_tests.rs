@@ -218,6 +218,22 @@ async fn setup_test_session(
         return None;
     }
 
+    // Insert mock authorized passkey for test_admin so the request guard succeeds
+    use diesel::{Connection, RunQueryDsl, SqliteConnection};
+    match SqliteConnection::establish(&ctx.test_db_path) {
+        Ok(mut conn) => {
+            if let Err(e) = diesel::sql_query("INSERT INTO passkeys (id, username, passkey, authorized) VALUES ('test_cred_id', 'test_admin', '{}', 1)")
+                .execute(&mut conn) {
+                println!("[TEST-DEBUG] Failed to insert test passkey into database: {:?}", e);
+                return None;
+            }
+        }
+        Err(e) => {
+            println!("[TEST-DEBUG] Failed to connect to test DB at {} to insert test admin: {:?}", ctx.test_db_path, e);
+            return None;
+        }
+    }
+
     // 6. Connect WebDriver and log in by injecting authenticated cookie
     let driver = match WebDriver::new(&webdriver_url, caps).await {
         Ok(d) => d,

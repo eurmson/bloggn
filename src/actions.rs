@@ -3,12 +3,6 @@ use crate::schema::{images, posts, profile};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
-pub fn get_all_posts(conn: &mut SqliteConnection) -> Vec<Post> {
-    posts::table
-        .load::<Post>(conn)
-        .expect("Error loading posts")
-}
-
 pub fn get_all_posts_with_images(conn: &mut SqliteConnection) -> Vec<PostWithImages> {
     let all_posts = posts::table
         .load::<Post>(conn)
@@ -243,13 +237,6 @@ pub fn create_passkey(conn: &mut SqliteConnection, model: PasskeyModel) -> Query
     diesel::insert_into(passkeys::table)
         .values(&model)
         .execute(conn)
-}
-
-pub fn get_passkeys_by_username(conn: &mut SqliteConnection, name: &str) -> Vec<PasskeyModel> {
-    passkeys::table
-        .filter(passkeys::username.eq(name))
-        .load::<PasskeyModel>(conn)
-        .unwrap_or_default()
 }
 
 pub fn get_authorized_passkeys_by_username(conn: &mut SqliteConnection, name: &str) -> Vec<PasskeyModel> {

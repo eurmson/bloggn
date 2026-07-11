@@ -25,7 +25,25 @@ impl<'r> FromRequest<'r> for AdminUser {
 
     async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
         if let Some(cookie) = request.cookies().get_private("admin_logged_in") {
-            Outcome::Success(AdminUser { username: cookie.value().to_string() })
+            let username = cookie.value().to_string();
+
+            let pool = match request.guard::<&State<crate::db::SqlitePool>>().await {
+                Outcome::Success(pool) => pool,
+                _ => return Outcome::Error((Status::InternalServerError, ())),
+            };
+
+            let mut conn = match pool.get() {
+                Ok(conn) => conn,
+                Err(_) => return Outcome::Error((Status::ServiceUnavailable, ())),
+            };
+
+            let db_passkeys = crate::actions::get_authorized_passkeys_by_username(&mut conn, &username);
+            if !db_passkeys.is_empty() {
+                Outcome::Success(AdminUser { username })
+            } else {
+                request.cookies().remove_private(Cookie::new("admin_logged_in", ""));
+                Outcome::Error((Status::Unauthorized, ()))
+            }
         } else {
             Outcome::Error((Status::Unauthorized, ()))
         }
@@ -593,42 +611,80 @@ mod tests {
     #[test]
     fn test_admin_user_request_guard() {
         let _lock = TEST_MUTEX.lock().unwrap();
-        unsafe {
-            env::set_var("DATABASE_URL", ":memory:");
-            env::set_var("RP_ID", "localhost");
-            env::set_var("RP_ORIGIN", "http://localhost:8000");
+        let db_path = "test_admin_guard.db";
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
         }
 
-        let rocket = crate::rocket();
-        let client = Client::tracked(rocket).expect("valid rocket instance");
+        {
+            unsafe {
+                env::set_var("DATABASE_URL", db_path);
+                env::set_var("RP_ID", "localhost");
+                env::set_var("RP_ORIGIN", "http://localhost:8000");
+            }
 
-        // 1. Without cookie, requesting dashboard redirects to login
-        let response = client.get("/admin/dashboard").dispatch();
-        assert_eq!(response.status(), Status::SeeOther); // 303 redirect
-        assert_eq!(response.headers().get_one("Location"), Some("/admin/login?redirect=/admin/dashboard"));
+            let rocket = crate::rocket();
+            let pool = rocket.state::<crate::db::SqlitePool>().expect("DB pool not attached").clone();
+            let client = Client::tracked(rocket).expect("valid rocket instance");
+            let mut conn = pool.get().expect("Failed to get DB connection");
 
-        // 2. With cookie, requesting dashboard succeeds
-        let cookie = Cookie::new("admin_logged_in", "test_admin");
-        let response = client.get("/admin/dashboard")
-            .private_cookie(cookie)
-            .dispatch();
-        assert_eq!(response.status(), Status::Ok);
+            // 1. Without cookie, requesting dashboard redirects to login
+            let response = client.get("/admin/dashboard").dispatch();
+            assert_eq!(response.status(), Status::SeeOther); // 303 redirect
+            assert_eq!(response.headers().get_one("Location"), Some("/admin/login?redirect=/admin/dashboard"));
+
+            // 2. With cookie, but user does not exist in DB, should redirect due to unauthorized
+            let cookie = Cookie::new("admin_logged_in", "test_admin");
+            let response = client.get("/admin/dashboard")
+                .private_cookie(cookie.clone())
+                .dispatch();
+            assert_eq!(response.status(), Status::SeeOther);
+
+            // 3. With cookie and authorized user in DB, should succeed
+            let passkey_model = crate::models::PasskeyModel {
+                id: "test_cred_id".to_string(),
+                username: "test_admin".to_string(),
+                passkey: "{}".to_string(),
+                authorized: true,
+            };
+            crate::actions::create_passkey(&mut conn, passkey_model).expect("Failed to insert passkey");
+
+            let response = client.get("/admin/dashboard")
+                .private_cookie(cookie)
+                .dispatch();
+            assert_eq!(response.status(), Status::Ok);
+        }
+
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
+        }
     }
 
     #[test]
     fn test_admin_login_page() {
         let _lock = TEST_MUTEX.lock().unwrap();
-        unsafe {
-            env::set_var("DATABASE_URL", ":memory:");
-            env::set_var("RP_ID", "localhost");
-            env::set_var("RP_ORIGIN", "http://localhost:8000");
+        let db_path = "test_admin_login.db";
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
         }
 
-        let rocket = crate::rocket();
-        let client = Client::tracked(rocket).expect("valid rocket instance");
+        {
+            unsafe {
+                env::set_var("DATABASE_URL", db_path);
+                env::set_var("RP_ID", "localhost");
+                env::set_var("RP_ORIGIN", "http://localhost:8000");
+            }
 
-        let response = client.get("/admin/login").dispatch();
-        assert_eq!(response.status(), Status::Ok);
+            let rocket = crate::rocket();
+            let client = Client::tracked(rocket).expect("valid rocket instance");
+
+            let response = client.get("/admin/login").dispatch();
+            assert_eq!(response.status(), Status::Ok);
+        }
+
+        if std::path::Path::new(db_path).exists() {
+            let _ = std::fs::remove_file(db_path);
+        }
     }
 
     #[test]
@@ -650,6 +706,15 @@ mod tests {
             let pool = rocket.state::<crate::db::SqlitePool>().expect("DB pool not attached").clone();
             let client = Client::tracked(rocket).expect("valid rocket instance");
             let mut conn = pool.get().expect("Failed to get DB connection");
+
+            // Insert authorized passkey for test_admin so the request guard succeeds
+            let passkey_model = crate::models::PasskeyModel {
+                id: "test_cred_id".to_string(),
+                username: "test_admin".to_string(),
+                passkey: "{}".to_string(),
+                authorized: true,
+            };
+            crate::actions::create_passkey(&mut conn, passkey_model).expect("Failed to insert passkey");
 
             let new_post = crate::models::NewPost {
                 title: "Draft Test Post".to_string(),
