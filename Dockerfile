@@ -73,6 +73,9 @@ CMD ["/app/bloggn"]
 # Stage 3: Test runner
 FROM builder AS tester
 
+# Ensure static directories exist as they are gitignored and needed by Rocket FileServer during tests
+RUN mkdir -p static static/images
+
 # Install system dependencies, Chromium, and Firefox
 RUN apt-get update && apt-get install -y \
     chromium \
