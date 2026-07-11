@@ -69,3 +69,39 @@ EXPOSE 8000
 
 # Run the binary
 CMD ["/app/bloggn"]
+
+# Stage 3: Test runner
+FROM builder AS tester
+
+# Install system dependencies, Chromium, and Firefox
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    firefox-esr \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install geckodriver
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        GECKO_ARCH="linux64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        GECKO_ARCH="linux-aarch64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    GECKODRIVER_URL=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep browser_download_url | grep "$GECKO_ARCH" | cut -d '"' -f 4) && \
+    curl -sL -o /tmp/geckodriver.tar.gz "$GECKODRIVER_URL" && \
+    tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
+    rm /tmp/geckodriver.tar.gz && \
+    chmod +x /usr/local/bin/geckodriver
+
+# Set environment variables for testing
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+ENV GECKODRIVER_PATH=/usr/local/bin/geckodriver
+ENV ROCKET_SECRET_KEY=i7DJj20DP8cqraea4OhLCWY+oJKa780VhW07Jihp9oI=
+
+# Pre-compile the tests to speed up container execution and cache dependencies
+RUN cargo test --no-run --release
+
+# Run the test suite
+CMD ["cargo", "test", "--release"]

@@ -1,0 +1,36 @@
+name: Run Test Suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build & Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the test image up to the 'tester' stage and load it into local docker daemon
+      - name: Build tester image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: tester
+          load: true
+          tags: bloggn-tester:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Run the test suite inside the container
+      - name: Run tests
+        run: |
+          docker run --rm bloggn-tester:latest
